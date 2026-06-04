@@ -154,9 +154,12 @@ function RankProjectionPanel({ projection }) {
 function DonateModal({ orgName, tab = 'all', animate, onClose, toast }) {
   const [amount, setAmount] = useState(50);
   const [customStr, setCustomStr] = useState('');
+  const [signedInDonorId, setSignedInDonorId] = useState(null);
   const presets = [25, 50, 100, 250];
   const isCustom = !presets.includes(amount);
-  const projection = projectedRankForGift({ donorId: 'tudi', tab, giftAmount: amount });
+  const projection = signedInDonorId
+    ? projectedRankForGift({ donorId: signedInDonorId, tab, giftAmount: amount })
+    : null;
 
   const onPickPreset = (p) => {
     setAmount(p);
@@ -172,7 +175,10 @@ function DonateModal({ orgName, tab = 'all', animate, onClose, toast }) {
   const handlePay = (label) => {
     toast(`${label} · $${amount} to ${orgName}`);
   };
-  const handleGoogle = () => toast('Signing in with Google…');
+  const handleGoogle = () => {
+    setSignedInDonorId('tudi');
+    toast('Signed in with Google as Tudi');
+  };
 
   return (
     <div
@@ -198,42 +204,45 @@ function DonateModal({ orgName, tab = 'all', animate, onClose, toast }) {
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '8px 18px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {/* Google login card */}
-        <div style={{
-          padding: 16, borderRadius: 18,
-          background: 'rgba(255,250,241,0.62)',
-          border: '1px solid rgba(96,73,45,0.14)',
-          boxShadow: '0 18px 42px rgba(84,65,42,0.10)',
-        }}>
-          <div className="sans" style={{
-            fontSize: 9.5, letterSpacing: 2.4, textTransform: 'uppercase',
-            color: 'rgba(58,50,41,0.48)', marginBottom: 6,
+        {!signedInDonorId ? (
+          <div style={{
+            padding: 16, borderRadius: 18,
+            background: 'rgba(255,250,241,0.62)',
+            border: '1px solid rgba(96,73,45,0.14)',
+            boxShadow: '0 18px 42px rgba(84,65,42,0.10)',
           }}>
-            Sign in first
+            <div className="sans" style={{
+              fontSize: 9.5, letterSpacing: 2.4, textTransform: 'uppercase',
+              color: 'rgba(58,50,41,0.48)', marginBottom: 6,
+            }}>
+              Sign in first
+            </div>
+            <div className="serif" style={{ fontSize: 20, fontWeight: 600, lineHeight: 1.2, color: '#302b26' }}>
+              Let every gift carry your name
+            </div>
+            <div className="sans" style={{ marginTop: 8, fontSize: 12.5, lineHeight: 1.5, color: 'rgba(58,50,41,0.62)' }}>
+              Sign in with Google so your donations accumulate under one profile and lift you up the leaderboard. Guest gifts won&apos;t add to your name.
+            </div>
+            <button
+              onClick={handleGoogle}
+              style={{
+                marginTop: 14, width: '100%', height: 48, borderRadius: 12, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                background: '#fff', color: '#1f1f1f', border: 'none',
+                fontFamily: 'Archivo, sans-serif', fontSize: 15, fontWeight: 700,
+                boxShadow: '0 8px 18px rgba(84,65,42,0.12)', transition: 'transform .15s ease',
+              }}
+              onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.98)')}
+              onMouseUp={(e) => (e.currentTarget.style.transform = '')}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = '')}
+            >
+              <GoogleG size={20} />
+              Continue with Google
+            </button>
           </div>
-          <div className="serif" style={{ fontSize: 20, fontWeight: 600, lineHeight: 1.2, color: '#302b26' }}>
-            Let every gift carry your name
-          </div>
-          <div className="sans" style={{ marginTop: 8, fontSize: 12.5, lineHeight: 1.5, color: 'rgba(58,50,41,0.62)' }}>
-            Sign in with Google so your donations accumulate under one profile and lift you up the leaderboard. Guest gifts won&apos;t add to your name.
-          </div>
-          <button
-            onClick={handleGoogle}
-            style={{
-              marginTop: 14, width: '100%', height: 48, borderRadius: 12, cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-              background: '#fff', color: '#1f1f1f', border: 'none',
-              fontFamily: 'Archivo, sans-serif', fontSize: 15, fontWeight: 700,
-              boxShadow: '0 8px 18px rgba(84,65,42,0.12)', transition: 'transform .15s ease',
-            }}
-            onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.98)')}
-            onMouseUp={(e) => (e.currentTarget.style.transform = '')}
-            onMouseLeave={(e) => (e.currentTarget.style.transform = '')}
-          >
-            <GoogleG size={20} />
-            Continue with Google
-          </button>
-        </div>
+        ) : (
+          signedInDonorId && <RankProjectionPanel projection={projection} />
+        )}
 
         {/* divider */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '4px 4px' }}>
@@ -297,7 +306,6 @@ function DonateModal({ orgName, tab = 'all', animate, onClose, toast }) {
               </span>
             )}
           </div>
-          <RankProjectionPanel projection={projection} />
         </div>
 
         {/* payment options */}

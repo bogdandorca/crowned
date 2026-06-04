@@ -40,8 +40,12 @@ assert(
   'credit card payment option should use the same PaymentTile sizing as the other payment buttons'
 );
 assert(
-  donate.includes('RankProjectionPanel') && donate.includes("projectedRankForGift({ donorId: 'tudi', tab, giftAmount: amount })"),
-  'donation modal should show Tudi projected leaderboard rank for the selected gift amount'
+  donate.includes('signedInDonorId') &&
+    donate.includes("setSignedInDonorId('tudi')") &&
+    donate.includes('!signedInDonorId ?') &&
+    donate.includes('signedInDonorId &&') &&
+    donate.includes("projectedRankForGift({ donorId: signedInDonorId, tab, giftAmount: amount })"),
+  'donation modal should replace Google sign-in with projected rank only after mocked Google login'
 );
 
 console.log('pastel-luxury redesign regression passed');
