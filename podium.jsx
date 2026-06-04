@@ -3,9 +3,9 @@
 // ─────────────────────────────────────────────────────────────
 
 const MEDAL = {
-  1: { ring: 'gold',     label: '1', tone: '#f5c84b', base: 64, av: 80, dim: 'rgba(245,200,75,0.55)' },
-  2: { ring: 'platinum', label: '2', tone: '#d8dee6', base: 44, av: 58, dim: 'rgba(216,222,230,0.45)' },
-  3: { ring: 'bronze',   label: '3', tone: '#c98a4b', base: 30, av: 58, dim: 'rgba(201,138,75,0.45)' },
+  1: { ring: 'gold',     label: '1', tone: '#8b6b34', av: 70 },
+  2: { ring: 'platinum', label: '2', tone: '#7f8b8e', av: 58 },
+  3: { ring: 'bronze',   label: '3', tone: '#a88973', av: 58 },
 };
 
 function MedalBadge({ rank }) {
@@ -14,11 +14,11 @@ function MedalBadge({ rank }) {
   return (
     <div style={{
       position: 'absolute', bottom: -10, left: '50%', transform: 'translateX(-50%)',
-      width: 28, height: 28, borderRadius: '50%', zIndex: 3,
+      width: 26, height: 26, borderRadius: '50%', zIndex: 3,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      boxShadow: '0 3px 8px rgba(0,0,0,0.45)',
+      boxShadow: '0 8px 18px rgba(84,65,42,0.14)',
     }} className={grad}>
-      <span className="sans" style={{ fontSize: 14, fontWeight: 800, color: '#1a1206', fontVariantNumeric: 'lining-nums tabular-nums' }}>{rank}</span>
+      <span className="sans" style={{ fontSize: 12, fontWeight: 800, color: '#3a3229', fontVariantNumeric: 'lining-nums tabular-nums' }}>{rank}</span>
     </div>
   );
 }
@@ -31,7 +31,7 @@ function DeltaChip({ delta }) {
   return (
     <span className="sans" style={{
       display: 'inline-flex', alignItems: 'center', gap: 2, fontSize: 11, fontWeight: 700,
-      color: up ? '#7fd6a0' : '#e09a9a', letterSpacing: 0.2,
+      color: up ? '#56634e' : '#a88973', letterSpacing: 0.2,
     }}>
       <span style={{ fontSize: 9 }}>{up ? '▲' : '▼'}</span>{Math.abs(delta)}
     </span>
@@ -45,65 +45,52 @@ function PodiumCard({ donor, animate, onShare, idx }) {
     <div
       className={animate ? 'podium-pop' : ''}
       style={{
-        flex: isOne ? '1.18' : '1', display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'flex-end', minWidth: 0,
+        minWidth: 0, minHeight: isOne ? 232 : 196, display: 'flex', flexDirection: 'column',
+        justifyContent: 'flex-start', padding: isOne ? 20 : 16,
+        borderRadius: 14, cursor: 'pointer',
+        background: isOne
+          ? 'linear-gradient(155deg, rgba(255,255,255,0.76), rgba(236,221,226,0.64))'
+          : 'rgba(255,255,255,0.48)',
+        border: isOne ? '1px solid rgba(142,109,55,0.24)' : '1px solid rgba(96,73,45,0.12)',
+        boxShadow: isOne ? '0 24px 58px rgba(84,65,42,0.12)' : '0 16px 38px rgba(84,65,42,0.08)',
         animationDelay: animate ? (idx * 90) + 'ms' : '0ms',
       }}
+      onClick={() => onShare(donor)}
     >
-      {/* floating card content */}
-      <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-        {isOne && (
-          <Crown size={34} style={{ marginBottom: 4, filter: 'drop-shadow(0 2px 6px rgba(245,200,75,0.6))' }} />
-        )}
-        <div style={{ position: 'relative' }}>
-          {isOne && (
-            <div className={animate ? 'aura-pulse' : ''} aria-hidden style={{
-              position: 'absolute', inset: -22, borderRadius: '50%', zIndex: 0,
-              background: 'radial-gradient(circle, rgba(245,200,75,0.5), transparent 68%)',
-            }} />
-          )}
-          <div style={{ position: 'relative', zIndex: 2 }}>
-            <Avatar donor={donor} size={m.av} ring={m.ring} />
-            <MedalBadge rank={donor.rank} />
-          </div>
-        </div>
-        <div className="serif" style={{
-          marginTop: 14, textAlign: 'center', lineHeight: 1.06,
-          fontSize: isOne ? 19 : 15, fontWeight: 600, padding: '0 2px',
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14 }}>
+        <div className="sans" style={{
+          fontSize: 10, fontWeight: 800, letterSpacing: 2, textTransform: 'uppercase',
+          color: 'rgba(58,50,41,0.46)',
         }}>
-          <span className={isOne ? 'gold-grad' : 'soft-name'}>{donor.first}</span><br/>
-          <span className={isOne ? 'gold-grad' : 'soft-name'}>{donor.last}</span>
+          No. {donor.rank}
+        </div>
+        <div style={{ position: 'relative' }}>
+          <Avatar donor={donor} size={m.av} ring={m.ring} initialsColor="#4a3b27" />
+          <MedalBadge rank={donor.rank} />
+        </div>
+      </div>
+
+      <div>
+        <div className="serif" style={{
+          marginTop: isOne ? 26 : 20, lineHeight: 0.98,
+          fontSize: isOne ? 34 : 25, fontWeight: 600, color: '#302b26', letterSpacing: -0.3,
+        }}>
+          {fullName(donor)}
         </div>
         <Badge label={donor.badge} rank={donor.rank} />
-        <div className={'sans ' + (isOne ? 'gold-grad clip-fix' : '')} style={{
-          marginTop: 8, fontWeight: 800, letterSpacing: -0.8, whiteSpace: 'nowrap',
-          fontSize: isOne ? 21 : 15.5, fontVariantNumeric: 'tabular-nums',
-          color: isOne ? undefined : 'rgba(255,255,255,0.92)',
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 'auto', paddingTop: 22 }}>
+        <div className="sans" style={{
+          fontWeight: 800, letterSpacing: -0.3, whiteSpace: 'nowrap',
+          fontSize: isOne ? 22 : 17, fontVariantNumeric: 'tabular-nums',
+          color: '#7c5f30',
         }}>
           <AnimatedNumber value={donor.amount} animate={animate} />
         </div>
-        <button className="share-mini" onClick={() => onShare(donor)} aria-label="Share rank">
+        <button className="share-mini" onClick={(e) => { e.stopPropagation(); onShare(donor); }} aria-label="Share rank">
           <ShareGlyph size={12} /> Share
         </button>
-      </div>
-
-      {/* pedestal base */}
-      <div style={{
-        marginTop: 10, width: '86%', height: m.base, borderRadius: '8px 8px 0 0',
-        position: 'relative', overflow: 'hidden',
-        background: isOne
-          ? 'linear-gradient(#1d2435, #141a28)'
-          : 'linear-gradient(#1a2030, #11161f)',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
-        borderTop: `2px solid ${m.tone}`,
-      }}>
-        {animate && <div className="shimmer-sweep" style={{ position: 'absolute', inset: 0, opacity: isOne ? 1 : 0.55 }} />}
-        <span className="serif" style={{
-          position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-          fontSize: isOne ? 32 : 22, fontWeight: 600, opacity: 0.5,
-          color: m.tone, lineHeight: 1,
-          fontVariantNumeric: 'lining-nums tabular-nums',
-        }}>{donor.rank}</span>
       </div>
     </div>
   );
@@ -114,14 +101,11 @@ function Badge({ label, rank }) {
   const grad = rank === 1 ? 'gold' : rank === 2 ? 'platinum' : 'bronze';
   return (
     <span className="sans" style={{
-      marginTop: 7, fontSize: 9.5, fontWeight: 700, letterSpacing: 1.2,
-      textTransform: 'uppercase', padding: '3px 9px', borderRadius: 100,
-      color: rank <= 3 ? '#1a1206' : 'rgba(245,200,75,0.92)',
-      background: rank === 1 ? 'linear-gradient(100deg,#fff3c4,#f5c84b)'
-        : rank === 2 ? 'linear-gradient(100deg,#fff,#d8dee6)'
-        : rank === 3 ? 'linear-gradient(100deg,#f0c9a0,#c98a4b)'
-        : 'rgba(245,200,75,0.1)',
-      border: rank <= 3 ? 'none' : '1px solid rgba(245,200,75,0.25)',
+      display: 'inline-flex', marginTop: 10, fontSize: 9.5, fontWeight: 800, letterSpacing: 1.2,
+      textTransform: 'uppercase', padding: '5px 9px', borderRadius: 100,
+      color: 'rgba(58,50,41,0.58)',
+      background: 'rgba(255,250,241,0.52)',
+      border: '1px solid rgba(96,73,45,0.16)',
       whiteSpace: 'nowrap',
     }}>{label}</span>
   );
@@ -139,12 +123,42 @@ function ShareGlyph({ size = 14, color = 'currentColor' }) {
 }
 
 function Podium({ top3, animate, onShare, accent }) {
-  // visual order: #2, #1, #3
-  const ordered = [top3[1], top3[0], top3[2]].filter(Boolean);
+  const ordered = top3.filter(Boolean);
+  const leader = ordered[0];
   return (
-    <div style={{ position: 'relative', padding: '0 14px', marginTop: 6 }}>
-      <LightRays animate={animate} accent={accent} />
-      <div style={{ position: 'relative', zIndex: 2, display: 'flex', alignItems: 'flex-end', gap: 8 }}>
+    <div style={{ position: 'relative', marginTop: 6 }}>
+      {leader && (
+        <div className="patron-hero" style={{
+          display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto', gap: 24,
+          alignItems: 'end', marginBottom: 26,
+        }}>
+          <div>
+            <div className="sans" style={{
+              fontSize: 11, fontWeight: 800, letterSpacing: 2.4, textTransform: 'uppercase',
+              color: 'rgba(58,50,41,0.45)', marginBottom: 10,
+            }}>Leading patron</div>
+            <div className="serif patron-hero-name" style={{ fontSize: 60, lineHeight: 0.9, fontWeight: 600, letterSpacing: 0, color: '#2f2a25' }}>
+              {leader.first}<br />{leader.last || ''}
+            </div>
+            <div className="sans" style={{
+              marginTop: 14, fontSize: 28, fontWeight: 800,
+              color: '#7c5f30', fontVariantNumeric: 'tabular-nums',
+            }}>
+              <AnimatedNumber value={leader.amount} animate={animate} />
+            </div>
+          </div>
+          <div className="sans" style={{
+            maxWidth: 250, fontSize: 14, lineHeight: 1.55,
+            color: 'rgba(58,50,41,0.58)',
+          }}>
+            Recognition with the restraint of a private arts benefit: calm, generous, and intentionally understated.
+          </div>
+        </div>
+      )}
+      <div className="patron-grid" style={{
+        position: 'relative', zIndex: 2,
+        display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12,
+      }}>
         {ordered.map((d, i) => (
           <PodiumCard key={d.id} donor={d} animate={animate} onShare={onShare} idx={i} />
         ))}

@@ -8,14 +8,14 @@ function DonateButton({ onClick }) {
       onClick={onClick}
       aria-label="Donate"
       style={{
-        position: 'absolute', left: '50%', bottom: 46, transform: 'translateX(-50%)',
+        position: 'fixed', left: '50%', bottom: 28, transform: 'translateX(-50%)',
         zIndex: 50, display: 'inline-flex', alignItems: 'center', gap: 9,
         padding: '14px 28px', borderRadius: 100, border: 'none', cursor: 'pointer',
-        fontFamily: 'Archivo, sans-serif', fontSize: 15, fontWeight: 800,
-        letterSpacing: 0.4, textTransform: 'uppercase', color: '#1a1206',
-        background: 'linear-gradient(135deg, #fff3c4 0%, #f5c84b 45%, #d9a521 100%)',
+        fontFamily: 'Archivo, sans-serif', fontSize: 13, fontWeight: 800,
+        letterSpacing: 1.6, textTransform: 'uppercase', color: '#fffaf1',
+        background: '#56634e',
         boxShadow:
-          '0 10px 30px rgba(245,200,75,0.45), 0 2px 8px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.55)',
+          '0 14px 34px rgba(86,99,78,0.22), 0 2px 8px rgba(84,65,42,0.12)',
         transition: 'transform .15s ease, filter .2s ease',
       }}
       onMouseDown={(e) => (e.currentTarget.style.transform = 'translateX(-50%) scale(0.97)')}
@@ -24,9 +24,9 @@ function DonateButton({ onClick }) {
     >
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
         <path d="M12 21s-7-4.5-9.3-9.1C1 8.5 3 4.5 6.8 4.5c2 0 3.6 1.2 4.4 2.6C12 5.7 13.7 4.5 15.7 4.5c3.8 0 5.8 4 4.1 7.4C19 16.5 12 21 12 21z"
-              fill="#1a1206"/>
+              fill="#fffaf1"/>
       </svg>
-      Take the Crown
+      Make a Gift
     </button>
   );
 }
@@ -99,9 +99,9 @@ function PayPalGlyph() {
 function CardGlyph() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <rect x="2.5" y="5" width="19" height="14" rx="2.5" stroke="rgba(245,200,75,0.9)" strokeWidth="1.8"/>
-      <path d="M2.5 9.5h19" stroke="rgba(245,200,75,0.9)" strokeWidth="1.8"/>
-      <path d="M6 15h4" stroke="rgba(245,200,75,0.9)" strokeWidth="1.8" strokeLinecap="round"/>
+      <rect x="2.5" y="5" width="19" height="14" rx="2.5" stroke="rgba(86,99,78,0.9)" strokeWidth="1.8"/>
+      <path d="M2.5 9.5h19" stroke="rgba(86,99,78,0.9)" strokeWidth="1.8"/>
+      <path d="M6 15h4" stroke="rgba(86,99,78,0.9)" strokeWidth="1.8" strokeLinecap="round"/>
     </svg>
   );
 }
@@ -132,20 +132,21 @@ function DonateModal({ orgName, animate, onClose, toast }) {
     <div
       className={animate ? 'sheet-in' : ''}
       style={{
-        position: 'absolute', inset: 0, zIndex: 70,
-        background: 'rgba(4,6,12,0.78)',
+        position: 'fixed', inset: 0, zIndex: 70,
+        background: 'rgba(251,247,240,0.88)',
         backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
         display: 'flex', flexDirection: 'column',
+        width: 'min(100%, 520px)', margin: '0 auto',
       }}
     >
       {/* header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '60px 18px 8px' }}>
-        <span className="serif gold-solid" style={{ fontSize: 22, fontWeight: 600, whiteSpace: 'nowrap' }}>
-          Climb the Ranks
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '26px 18px 8px' }}>
+        <span className="serif" style={{ fontSize: 25, fontWeight: 600, whiteSpace: 'nowrap', color: '#302b26' }}>
+          Make a Gift
         </span>
         <button onClick={onClose} className="icon-btn" aria-label="Close">
           <svg width="16" height="16" viewBox="0 0 16 16">
-            <path d="M2 2l12 12M14 2L2 14" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round"/>
+            <path d="M2 2l12 12M14 2L2 14" stroke="rgba(58,50,41,0.66)" strokeWidth="2" strokeLinecap="round"/>
           </svg>
         </button>
       </div>
@@ -154,20 +155,20 @@ function DonateModal({ orgName, animate, onClose, toast }) {
         {/* Google login card */}
         <div style={{
           padding: 16, borderRadius: 18,
-          background: 'linear-gradient(160deg, rgba(245,200,75,0.10), rgba(255,255,255,0.02))',
-          border: '1px solid rgba(245,200,75,0.32)',
-          boxShadow: '0 6px 22px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,243,196,0.08)',
+          background: 'rgba(255,250,241,0.62)',
+          border: '1px solid rgba(96,73,45,0.14)',
+          boxShadow: '0 18px 42px rgba(84,65,42,0.10)',
         }}>
           <div className="sans" style={{
             fontSize: 9.5, letterSpacing: 2.4, textTransform: 'uppercase',
-            color: 'rgba(245,200,75,0.7)', marginBottom: 6,
+            color: 'rgba(58,50,41,0.48)', marginBottom: 6,
           }}>
             Sign in first
           </div>
-          <div className="serif gold-solid" style={{ fontSize: 18, fontWeight: 600, lineHeight: 1.2 }}>
-            Stack every gift toward your rank
+          <div className="serif" style={{ fontSize: 20, fontWeight: 600, lineHeight: 1.2, color: '#302b26' }}>
+            Let every gift carry your name
           </div>
-          <div className="sans" style={{ marginTop: 8, fontSize: 12.5, lineHeight: 1.5, color: 'rgba(255,255,255,0.7)' }}>
+          <div className="sans" style={{ marginTop: 8, fontSize: 12.5, lineHeight: 1.5, color: 'rgba(58,50,41,0.62)' }}>
             Sign in with Google so your donations accumulate under one profile and lift you up the leaderboard. Guest gifts won&apos;t add to your name.
           </div>
           <button
@@ -177,7 +178,7 @@ function DonateModal({ orgName, animate, onClose, toast }) {
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
               background: '#fff', color: '#1f1f1f', border: 'none',
               fontFamily: 'Archivo, sans-serif', fontSize: 15, fontWeight: 700,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.35)', transition: 'transform .15s ease',
+              boxShadow: '0 8px 18px rgba(84,65,42,0.12)', transition: 'transform .15s ease',
             }}
             onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.98)')}
             onMouseUp={(e) => (e.currentTarget.style.transform = '')}
@@ -190,18 +191,18 @@ function DonateModal({ orgName, animate, onClose, toast }) {
 
         {/* divider */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '4px 4px' }}>
-          <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.18))' }} />
-          <span className="sans" style={{ fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(255,255,255,0.45)' }}>
+          <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, rgba(96,73,45,0.16))' }} />
+          <span className="sans" style={{ fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(58,50,41,0.45)' }}>
             Or pay as guest
           </span>
-          <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(255,255,255,0.18), transparent)' }} />
+          <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(96,73,45,0.16), transparent)' }} />
         </div>
 
         {/* amount presets */}
         <div>
           <div className="sans" style={{
             fontSize: 9.5, letterSpacing: 2.4, textTransform: 'uppercase',
-            color: 'rgba(245,200,75,0.7)', marginBottom: 8,
+            color: 'rgba(58,50,41,0.48)', marginBottom: 8,
           }}>
             Amount
           </div>
@@ -214,9 +215,9 @@ function DonateModal({ orgName, animate, onClose, toast }) {
                 style={{
                   flex: 1, height: 44, borderRadius: 12, cursor: 'pointer',
                   fontSize: 15, fontWeight: 800, fontVariantNumeric: 'tabular-nums',
-                  background: amount === p && !isCustom ? 'linear-gradient(135deg,#f5c84b,#b8860b)' : 'rgba(255,255,255,0.04)',
-                  color: amount === p && !isCustom ? '#1a1206' : 'rgba(255,255,255,0.85)',
-                  border: amount === p && !isCustom ? 'none' : '1px solid rgba(255,255,255,0.1)',
+                  background: amount === p && !isCustom ? '#56634e' : 'rgba(255,250,241,0.62)',
+                  color: amount === p && !isCustom ? '#fffaf1' : 'rgba(58,50,41,0.8)',
+                  border: amount === p && !isCustom ? 'none' : '1px solid rgba(96,73,45,0.14)',
                   transition: 'all .18s ease',
                 }}
               >
@@ -227,11 +228,11 @@ function DonateModal({ orgName, animate, onClose, toast }) {
           <div style={{
             marginTop: 8, display: 'flex', alignItems: 'center',
             height: 50, borderRadius: 14, padding: '0 14px',
-            background: isCustom ? 'linear-gradient(135deg, rgba(245,200,75,0.18), rgba(184,134,11,0.10))' : 'rgba(255,255,255,0.04)',
-            border: isCustom ? '1px solid rgba(245,200,75,0.5)' : '1px solid rgba(255,255,255,0.1)',
+            background: isCustom ? 'rgba(255,250,241,0.78)' : 'rgba(255,250,241,0.54)',
+            border: isCustom ? '1px solid rgba(86,99,78,0.48)' : '1px solid rgba(96,73,45,0.14)',
             transition: 'all .18s ease',
           }}>
-            <span className="sans" style={{ fontSize: 17, fontWeight: 800, color: 'rgba(255,255,255,0.55)', marginRight: 8 }}>$</span>
+            <span className="sans" style={{ fontSize: 17, fontWeight: 800, color: 'rgba(58,50,41,0.48)', marginRight: 8 }}>$</span>
             <input
               type="text"
               inputMode="decimal"
@@ -241,11 +242,11 @@ function DonateModal({ orgName, animate, onClose, toast }) {
               className="sans"
               style={{
                 flex: 1, background: 'transparent', border: 'none', outline: 'none',
-                color: '#fff', fontSize: 17, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
+                color: '#302b26', fontSize: 17, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
               }}
             />
             {isCustom && (
-              <span className="sans" style={{ fontSize: 10, letterSpacing: 1.6, textTransform: 'uppercase', color: 'rgba(245,200,75,0.85)', fontWeight: 700 }}>
+              <span className="sans" style={{ fontSize: 10, letterSpacing: 1.6, textTransform: 'uppercase', color: 'rgba(86,99,78,0.85)', fontWeight: 700 }}>
                 Selected
               </span>
             )}
@@ -256,7 +257,7 @@ function DonateModal({ orgName, animate, onClose, toast }) {
         <div>
           <div className="sans" style={{
             fontSize: 9.5, letterSpacing: 2.4, textTransform: 'uppercase',
-            color: 'rgba(245,200,75,0.7)', marginBottom: 8,
+            color: 'rgba(58,50,41,0.48)', marginBottom: 8,
           }}>
             Pay with
           </div>
@@ -277,7 +278,7 @@ function DonateModal({ orgName, animate, onClose, toast }) {
           </div>
         </div>
 
-        <div className="sans" style={{ textAlign: 'center', fontSize: 10.5, color: 'rgba(255,255,255,0.4)', lineHeight: 1.5, marginTop: 4 }}>
+        <div className="sans" style={{ textAlign: 'center', fontSize: 10.5, color: 'rgba(58,50,41,0.46)', lineHeight: 1.5, marginTop: 4 }}>
           Secure checkout · 100% of your gift goes to {orgName}
         </div>
       </div>

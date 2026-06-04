@@ -10,40 +10,40 @@ function LeaderRow({ donor, animate, onShare }) {
       role="button"
       style={{
         display: 'flex', alignItems: 'center', gap: 13,
-        padding: '12px 14px 12px 13px', position: 'relative', cursor: 'pointer',
-        background: 'linear-gradient(100deg, rgba(245,200,75,0.05), rgba(255,255,255,0.012) 40%)',
-        borderRadius: 16, border: '1px solid rgba(255,255,255,0.05)',
-        borderLeft: '3px solid transparent',
+        padding: '15px 0', position: 'relative', cursor: 'pointer',
+        background: 'transparent',
+        borderRadius: 0, border: 'none',
+        borderBottom: '1px solid rgba(96,73,45,0.11)',
       }}
     >
       <div className="row-accent" />
       <div style={{ width: 26, textAlign: 'center', flexShrink: 0 }}>
-        <span className="serif" style={{ fontSize: 20, fontWeight: 600, color: 'rgba(245,200,75,0.85)', fontVariantNumeric: 'lining-nums tabular-nums' }}>{donor.rank}</span>
+        <span className="sans" style={{ fontSize: 11, fontWeight: 800, letterSpacing: 1.5, color: 'rgba(58,50,41,0.44)', fontVariantNumeric: 'lining-nums tabular-nums' }}>{String(donor.rank).padStart(2, '0')}</span>
       </div>
-      <Avatar donor={donor} size={42} ring="plain" />
+      <Avatar donor={donor} size={42} ring="plain" initialsColor="#4a3b27" />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div className="serif soft-name" style={{
-          fontSize: 16.5, fontWeight: 600, lineHeight: 1.1,
+        <div className="serif" style={{
+          fontSize: 19, fontWeight: 600, lineHeight: 1.1, color: '#302b26',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>{fullName(donor)}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 3 }}>
           <span className="sans" style={{
             fontSize: 9, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase',
-            color: 'rgba(245,200,75,0.7)',
+            color: 'rgba(58,50,41,0.48)',
           }}>{donor.badge}</span>
           <DeltaChip delta={donor.delta} />
         </div>
       </div>
       <div style={{ textAlign: 'right', flexShrink: 0 }}>
         <div className="sans" style={{
-          fontSize: 17, fontWeight: 800, color: 'rgba(255,255,255,0.94)',
+          fontSize: 17, fontWeight: 800, color: '#7c5f30',
           letterSpacing: -0.3, fontVariantNumeric: 'tabular-nums',
         }}>
           <AnimatedNumber value={donor.amount} animate={animate} />
         </div>
       </div>
       <button className="row-share" onClick={(e) => { e.stopPropagation(); onShare(donor); }} aria-label="Share rank">
-        <ShareGlyph size={15} color="rgba(245,200,75,0.85)" />
+        <ShareGlyph size={15} color="rgba(86,99,78,0.86)" />
       </button>
     </div>
   );
@@ -87,7 +87,10 @@ function LeaderList({ rows, animate, onShare }) {
   }, [sig, animate]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '0 14px 8px' }}>
+    <div style={{
+      display: 'flex', flexDirection: 'column', gap: 0, padding: '0 0 8px',
+      borderTop: '1px solid rgba(96,73,45,0.13)',
+    }}>
       {rows.map(d => (
         <div key={d.id} ref={el => { refs.current[d.id] = el; }} style={{ position: 'relative' }}>
           <LeaderRow donor={d} animate={animate} onShare={onShare} />

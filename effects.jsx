@@ -24,10 +24,10 @@ function crownSvg() {
 
 // ---- Avatar: textured placeholder + initials + metallic ring ----
 const RING = {
-  gold:     'conic-gradient(from 210deg, #6e4e09, #f5c84b, #fff3c4, #b8860b, #f5c84b, #6e4e09)',
-  platinum: 'conic-gradient(from 210deg, #6e7682, #d8dee6, #ffffff, #aeb6c2, #d8dee6, #6e7682)',
-  bronze:   'conic-gradient(from 210deg, #5a3617, #c98a4b, #f0c9a0, #8a5a2b, #c98a4b, #5a3617)',
-  plain:    'linear-gradient(#3a4257, #232a3b)',
+  gold:     'linear-gradient(135deg, #c9b37d, #fff8e6 48%, #8b6b34)',
+  platinum: 'linear-gradient(135deg, #b9c5c8, #ffffff 48%, #7f8b8e)',
+  bronze:   'linear-gradient(135deg, #d5b7a5, #fff1e7 48%, #a88973)',
+  plain:    'linear-gradient(135deg, #d9d2c5, #fdf8ef)',
 };
 function Avatar({ donor, size = 56, ring = 'plain', initialsColor }) {
   const pad = Math.max(2, Math.round(size * 0.045));
@@ -36,22 +36,22 @@ function Avatar({ donor, size = 56, ring = 'plain', initialsColor }) {
     <div style={{
       width: size, height: size, borderRadius: '50%', flexShrink: 0,
       background: RING[ring], padding: pad, boxSizing: 'border-box',
-      boxShadow: ring === 'plain' ? 'none' : '0 2px 10px rgba(0,0,0,0.35)',
+      boxShadow: ring === 'plain' ? 'none' : '0 10px 24px rgba(84,65,42,0.14)',
     }}>
       <div style={{
         width: inner, height: inner, borderRadius: '50%', overflow: 'hidden',
         position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: `radial-gradient(120% 120% at 30% 20%, hsl(${donor.hue} 24% 30%), hsl(${donor.hue} 30% 16%))`,
-        boxShadow: 'inset 0 0 0 1.5px rgba(0,0,0,0.4)',
+        background: `radial-gradient(120% 120% at 30% 20%, hsl(${donor.hue} 26% 82%), hsl(${donor.hue} 24% 66%))`,
+        boxShadow: 'inset 0 0 0 1.5px rgba(96,73,45,0.14)',
       }}>
         {/* photo placeholder stripes */}
         <div style={{
           position: 'absolute', inset: 0, opacity: 0.16,
-          backgroundImage: 'repeating-linear-gradient(135deg, #fff 0 1px, transparent 1px 7px)',
+          backgroundImage: 'repeating-linear-gradient(135deg, #fff 0 1px, transparent 1px 9px)',
         }} />
         <span className="serif" style={{
           position: 'relative', fontSize: inner * 0.4, fontWeight: 600,
-          color: initialsColor || 'rgba(255,255,255,0.82)', letterSpacing: 0.5,
+          color: initialsColor || '#4a3b27', letterSpacing: 0.5,
         }}>{initials(donor)}</span>
       </div>
     </div>

@@ -5,10 +5,10 @@
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "orgName": "Crowned",
   "serifFont": "Cormorant Garamond",
-  "goldIntensity": 62,
-  "bgDarkness": 72,
+  "goldIntensity": 22,
+  "bgDarkness": 18,
   "animations": true,
-  "accent": "#f5c84b"
+  "accent": "#6f7f68"
 }/*EDITMODE-END*/;
 
 const SERIF_OPTS = ['Cormorant Garamond', 'Playfair Display', 'Marcellus'];
@@ -25,21 +25,21 @@ function TabSwitch({ tab, onChange }) {
   const idx = tab === 'month' ? 1 : 0;
   return (
     <div style={{
-      position: 'relative', display: 'flex', margin: '0 16px',
-      background: 'rgba(255,255,255,0.04)', borderRadius: 100, padding: 4,
-      border: '1px solid rgba(245,200,75,0.14)',
+      position: 'relative', display: 'flex', margin: '0 auto', maxWidth: 360,
+      background: 'rgba(255,255,255,0.52)', borderRadius: 100, padding: 4,
+      border: '1px solid rgba(96,73,45,0.14)',
+      boxShadow: '0 12px 32px rgba(84,65,42,0.08)',
     }}>
       <div style={{
         position: 'absolute', top: 4, bottom: 4, left: 4, width: 'calc(50% - 4px)',
         borderRadius: 100, transform: `translateX(${idx * 100}%)`,
-        transition: 'transform .42s cubic-bezier(.34,1.4,.5,1)',
-        background: 'linear-gradient(135deg, rgba(245,200,75,0.22), rgba(184,134,11,0.16))',
-        border: '1px solid rgba(245,200,75,0.4)',
-        boxShadow: '0 2px 12px rgba(245,200,75,0.15)',
+        transition: 'transform .32s cubic-bezier(.22,1,.36,1)',
+        background: '#fffaf1',
+        border: '1px solid rgba(96,73,45,0.16)',
       }} />
       {tabs.map(([id, label]) => (
         <button key={id} className="tab-btn" onClick={() => onChange(id)} style={{
-          color: tab === id ? '#fff3c4' : 'rgba(255,255,255,0.5)',
+          color: tab === id ? '#3a3229' : 'rgba(58,50,41,0.48)',
         }}>{label}</button>
       ))}
     </div>
@@ -48,19 +48,25 @@ function TabSwitch({ tab, onChange }) {
 
 function Header({ orgName, onRefresh, season }) {
   return (
-    <div style={{ padding: '0 18px', textAlign: 'center', position: 'relative' }}>
-      <button className="icon-btn" onClick={onRefresh} aria-label="Refresh leaderboard" style={{ position: 'absolute', right: 18, top: 2 }}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 11a8 8 0 10-1.6 5.4M20 5v6h-6" stroke="rgba(245,200,75,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+    <div style={{ padding: '0 18px', position: 'relative' }}>
+      <button className="icon-btn" onClick={onRefresh} aria-label="Refresh leaderboard" style={{ position: 'absolute', right: 18, top: 0 }}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 11a8 8 0 10-1.6 5.4M20 5v6h-6" stroke="rgba(86,99,78,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
       </button>
-      <div className="sans" style={{ fontSize: 9.5, letterSpacing: 3.5, textTransform: 'uppercase', color: 'rgba(245,200,75,0.55)', marginBottom: 8 }}>
-        Donor Leaderboard
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 12 }}>
+        <span style={{
+          width: 34, height: 34, borderRadius: '50%', display: 'inline-flex',
+          alignItems: 'center', justifyContent: 'center',
+          border: '1px solid rgba(96,73,45,0.28)', background: 'rgba(255,250,241,0.58)',
+          color: '#695126', fontFamily: 'Georgia, serif', fontWeight: 700,
+        }}>C</span>
+        <span className="sans" style={{ fontSize: 10, letterSpacing: 3.2, textTransform: 'uppercase', color: 'rgba(58,50,41,0.56)' }}>
+          Donor Leaderboard
+        </span>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-        <Crown size={22} />
-        <span className="serif gold-solid" style={{ fontSize: 34, fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase', lineHeight: 1 }}>{orgName}</span>
-        <Crown size={22} style={{ transform: 'scaleX(-1)' }} />
+      <div style={{ textAlign: 'center' }}>
+        <span className="serif site-wordmark" style={{ fontSize: 54, fontWeight: 600, letterSpacing: 0, lineHeight: 0.92, color: '#2f2a25' }}>{orgName}</span>
       </div>
-      <div className="sans" style={{ fontSize: 11, color: 'rgba(255,255,255,0.42)', marginTop: 9, letterSpacing: 0.3 }}>
+      <div className="sans" style={{ fontSize: 12, color: 'rgba(58,50,41,0.5)', marginTop: 12, letterSpacing: 0.3, textAlign: 'center' }}>
         {season}
       </div>
     </div>
@@ -72,7 +78,6 @@ function App() {
   const [tab, setTab] = useState('all');
   const [share, setShare] = useState(null);
   const [donateOpen, setDonateOpen] = useState(false);
-  const [burst, setBurst] = useState(1);
   const [toastMsg, setToastMsg] = useState(null);
   const toastTimer = useRef(null);
 
@@ -80,16 +85,6 @@ function App() {
   const ranked = rankedFor(tab);
   const top3 = ranked.slice(0, 3);
   const rest = ranked.slice(3);
-  const prevLeader = useRef(top3[0] && top3[0].id);
-
-  // confetti when the #1 donor changes (tab switch / refresh)
-  useEffect(() => {
-    const leader = top3[0] && top3[0].id;
-    if (anim && leader && leader !== prevLeader.current) {
-      setBurst(b => b + 1);
-    }
-    prevLeader.current = leader;
-  }, [tab]);
 
   const toast = (msg) => {
     setToastMsg(msg);
@@ -97,40 +92,46 @@ function App() {
     toastTimer.current = setTimeout(() => setToastMsg(null), 1900);
   };
 
-  const refresh = () => { if (anim) setBurst(b => b + 1); toast('Leaderboard refreshed'); };
+  const refresh = () => { toast('Leaderboard refreshed'); };
 
   // ---- tweak-derived style vars ----
-  const goldSat = (0.55 + (t.goldIntensity / 100) * 0.95).toFixed(2);
-  const goldBri = (0.82 + (t.goldIntensity / 100) * 0.42).toFixed(2);
-  const d = t.bgDarkness / 100;
-  const bgTop = mix('1a2440', '0a0f1e', d);
-  const bgMid = mix('0d1424', '05080f', d);
-  const bgBot = mix('080c16', '03050a', d);
+  const goldSat = (0.38 + (t.goldIntensity / 100) * 0.55).toFixed(2);
+  const goldBri = (0.92 + (t.goldIntensity / 100) * 0.16).toFixed(2);
+  const pastelSurface = '#fbf7f0';
+  const blushWash = '#ead8df';
+  const sageInk = '#56634e';
+  const porcelainBlue = '#e6edf0';
+  const champagne = '#8b6b34';
 
   const rootVars = {
     '--serif': `'${t.serifFont}'`,
     '--gold-sat': goldSat,
     '--gold-bri': goldBri,
-    '--accent': t.accent,
+    '--accent': sageInk,
+    '--pastel-surface': pastelSurface,
+    '--blush-wash': blushWash,
+    '--sage-ink': sageInk,
+    '--porcelain-blue': porcelainBlue,
+    '--champagne': champagne,
     height: '100%',
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center' }}>
-     <div style={{ position: 'relative' }}>
-      <IOSDevice dark width={402} height={874}>
-        <div style={{
-          ...rootVars, minHeight: '100%', position: 'relative',
-          background: `radial-gradient(125% 75% at 50% 0%, ${bgTop} 0%, ${bgMid} 48%, ${bgBot} 100%)`,
-        }}>
-          {/* ambient particles across whole screen */}
-          <GoldParticles count={20} animate={anim} accent={t.accent} />
-
+    <div style={{
+      ...rootVars, minHeight: '100vh', width: '100%', position: 'relative', overflowX: 'hidden',
+      color: '#2f2a25',
+      background: `
+        radial-gradient(80% 56% at 18% 0%, ${blushWash}b8 0%, transparent 62%),
+        radial-gradient(72% 48% at 92% 8%, ${porcelainBlue}d8 0%, transparent 60%),
+        linear-gradient(145deg, ${pastelSurface} 0%, #f3ebdf 50%, #e9eef0 100%)
+      `,
+    }}>
+      <main style={{ width: 'min(100%, 980px)', margin: '0 auto', padding: '0 22px' }}>
           {/* sticky header */}
           <div style={{
-            position: 'sticky', top: 0, zIndex: 30, paddingTop: 56, paddingBottom: 12,
-            background: `linear-gradient(${bgTop}, ${bgTop}f2 70%, ${bgTop}00)`,
-            backdropFilter: 'blur(2px)',
+            position: 'sticky', top: 0, zIndex: 30, paddingTop: 30, paddingBottom: 14, margin: '0 -22px',
+            background: 'linear-gradient(rgba(251,247,240,0.96), rgba(251,247,240,0.82) 78%, rgba(251,247,240,0))',
+            backdropFilter: 'blur(10px)',
           }}>
             <Header orgName={t.orgName} onRefresh={refresh} season={tab === 'month' ? 'May 2026 · Live standings' : 'Since inception - 2026'} />
             <div style={{ marginTop: 16 }}>
@@ -139,16 +140,15 @@ function App() {
           </div>
 
           {/* podium */}
-          <div style={{ position: 'relative', zIndex: 2, marginTop: 8 }}>
-            <Confetti burstKey={burst} animate={anim} origin={{ x: 50, y: 24 }} />
+          <div style={{ position: 'relative', zIndex: 2, marginTop: 28 }}>
             <Podium top3={top3} animate={anim} onShare={setShare} accent={t.accent} />
           </div>
 
           {/* divider */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '34px 22px 14px', position: 'relative', zIndex: 2 }}>
-            <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, rgba(245,200,75,0.3))' }} />
-            <span className="sans" style={{ fontSize: 10, letterSpacing: 2.5, textTransform: 'uppercase', color: 'rgba(245,200,75,0.6)', whiteSpace: 'nowrap' }}>Full Standings</span>
-            <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(245,200,75,0.3), transparent)' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '42px 0 16px', position: 'relative', zIndex: 2 }}>
+            <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, rgba(96,73,45,0.18))' }} />
+            <span className="sans" style={{ fontSize: 10, letterSpacing: 2.8, textTransform: 'uppercase', color: 'rgba(58,50,41,0.5)', whiteSpace: 'nowrap' }}>Full Standings</span>
+            <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(96,73,45,0.18), transparent)' }} />
           </div>
 
           {/* list 4–10 */}
@@ -158,10 +158,11 @@ function App() {
 
           {/* footer */}
           <div style={{ textAlign: 'center', padding: '14px 24px 120px', position: 'relative', zIndex: 2 }}>
-            <div className="sans" style={{ fontSize: 11, color: 'rgba(255,255,255,0.34)', lineHeight: 1.6 }}>
+            <div className="sans" style={{ fontSize: 12, color: 'rgba(58,50,41,0.48)', lineHeight: 1.6 }}>
               Every gift writes the legacy.<br />Tap any patron to share their place.
             </div>
           </div>
+      </main>
 
           {/* share modal */}
           {share && (
@@ -175,12 +176,9 @@ function App() {
 
           {/* toast */}
           {toastMsg && <div className="toast">{toastMsg}</div>}
-        </div>
-      </IOSDevice>
 
-      {/* floating donate CTA — pinned to the device frame, not the scroll area */}
+      {/* floating donate CTA */}
       {!share && !donateOpen && <DonateButton onClick={() => setDonateOpen(true)} />}
-     </div>
 
       {/* ---- Tweaks ---- */}
       <TweaksPanel>

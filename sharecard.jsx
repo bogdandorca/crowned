@@ -10,48 +10,47 @@ function ShareCardArt({ donor, orgName, format }) {
   return (
     <div style={{
       width: base.w, height: base.h, position: 'relative', overflow: 'hidden',
-      background: 'radial-gradient(120% 90% at 50% 8%, #16203a 0%, #0a0e1a 55%, #060911 100%)',
+      background: 'radial-gradient(90% 60% at 18% 0%, rgba(234,216,223,0.82), transparent 62%), radial-gradient(80% 54% at 90% 10%, rgba(230,237,240,0.9), transparent 60%), linear-gradient(145deg, #fbf7f0, #f1e8dc 54%, #e8edf0)',
       display: 'flex', flexDirection: 'column', alignItems: 'center',
       justifyContent: 'space-between', padding: format === 'story' ? '46px 30px 38px' : '30px 28px',
     }}>
-      <LightRays animate={false} />
-      <div style={{ position: 'absolute', inset: 0 }}>
-        <GoldParticles count={14} animate={false} />
-      </div>
       {/* wordmark */}
       <div style={{ position: 'relative', zIndex: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Crown size={20} />
-          <span className="serif gold-solid" style={{ fontSize: 22, fontWeight: 600, letterSpacing: 4, textTransform: 'uppercase' }}>{orgName}</span>
+          <span style={{
+            width: 26, height: 26, borderRadius: '50%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            border: '1px solid rgba(96,73,45,0.28)', background: 'rgba(255,250,241,0.58)',
+            color: '#695126', fontFamily: 'Georgia, serif', fontWeight: 700,
+          }}>C</span>
+          <span className="serif" style={{ fontSize: 22, fontWeight: 600, letterSpacing: 3, textTransform: 'uppercase', color: '#302b26' }}>{orgName}</span>
         </div>
-        <div style={{ width: 50, height: 1, background: 'linear-gradient(90deg,transparent,rgba(245,200,75,0.6),transparent)' }} />
+        <div style={{ width: 50, height: 1, background: 'linear-gradient(90deg,transparent,rgba(96,73,45,0.28),transparent)' }} />
       </div>
 
       {/* hero */}
       <div style={{ position: 'relative', zIndex: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', flex: format === 'story' ? '0 1 auto' : 'none', margin: format === 'square' ? '4px 0' : 0 }}>
         <div style={{ position: 'relative' }}>
-          {donor.rank === 1 && <Crown size={32} style={{ position: 'absolute', top: -34, left: '50%', transform: 'translateX(-50%)' }} />}
-          <div aria-hidden style={{ position: 'absolute', inset: -18, borderRadius: '50%', background: `radial-gradient(circle, ${m.tone}55, transparent 68%)` }} />
+          <div aria-hidden style={{ position: 'absolute', inset: -18, borderRadius: '50%', background: `radial-gradient(circle, ${m.tone}22, transparent 68%)` }} />
           <div style={{ position: 'relative' }}>
-            <Avatar donor={donor} size={av} ring={m.ring} />
+            <Avatar donor={donor} size={av} ring={m.ring} initialsColor="#4a3b27" />
             {top && <MedalBadge rank={donor.rank} />}
           </div>
         </div>
-        <div className="serif gold-solid" style={{ marginTop: 22, fontSize: format === 'story' ? 30 : 26, fontWeight: 600, textAlign: 'center', lineHeight: 1.05 }}>
+        <div className="serif" style={{ marginTop: 22, fontSize: format === 'story' ? 30 : 26, fontWeight: 600, textAlign: 'center', lineHeight: 1.05, color: '#302b26' }}>
           {fullName(donor)}
         </div>
         <Badge label={donor.badge} rank={donor.rank} />
-        <div className="sans gold-grad clip-fix" style={{ marginTop: 12, fontSize: format === 'story' ? 44 : 38, fontWeight: 800, letterSpacing: -1, fontVariantNumeric: 'tabular-nums' }}>
+        <div className="sans" style={{ marginTop: 12, fontSize: format === 'story' ? 44 : 38, fontWeight: 800, letterSpacing: 0, fontVariantNumeric: 'tabular-nums', color: '#7c5f30' }}>
           {fmtMoney(donor.amount)}
         </div>
       </div>
 
       {/* tagline */}
       <div style={{ position: 'relative', zIndex: 3, textAlign: 'center' }}>
-        <div className="sans" style={{ fontSize: format === 'story' ? 13.5 : 13, lineHeight: 1.5, color: 'rgba(255,255,255,0.82)', maxWidth: format === 'story' ? 320 : 300 }}>
-          I'm <span className="gold-grad" style={{ fontWeight: 800 }}>#{donor.rank}</span> on the <span style={{ fontWeight: 700 }}>{orgName}</span> leaderboard
+        <div className="sans" style={{ fontSize: format === 'story' ? 13.5 : 13, lineHeight: 1.5, color: 'rgba(58,50,41,0.68)', maxWidth: format === 'story' ? 320 : 300 }}>
+          I'm <span style={{ fontWeight: 800, color: '#7c5f30' }}>#{donor.rank}</span> on the <span style={{ fontWeight: 700 }}>{orgName}</span> leaderboard
         </div>
-        <div className="sans" style={{ marginTop: 10, fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(245,200,75,0.55)' }}>
+        <div className="sans" style={{ marginTop: 10, fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(58,50,41,0.48)' }}>
           Every gift writes the legacy
         </div>
       </div>
@@ -84,15 +83,16 @@ function ShareModal({ donor, orgName, animate, onClose, toast }) {
 
   return (
     <div className={animate ? 'sheet-in' : ''} style={{
-      position: 'absolute', inset: 0, zIndex: 70,
-      background: 'rgba(4,6,12,0.78)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
+      position: 'fixed', inset: 0, zIndex: 70,
+      background: 'rgba(251,247,240,0.88)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
       display: 'flex', flexDirection: 'column',
+      width: 'min(100%, 860px)', margin: '0 auto',
     }}>
       {/* header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '60px 18px 8px' }}>
-        <span className="serif gold-solid" style={{ fontSize: 22, fontWeight: 600, whiteSpace: 'nowrap' }}>Share My Rank</span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '26px 18px 8px' }}>
+        <span className="serif" style={{ fontSize: 25, fontWeight: 600, whiteSpace: 'nowrap', color: '#302b26' }}>Share My Rank</span>
         <button onClick={onClose} className="icon-btn" aria-label="Close">
-          <svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 2l12 12M14 2L2 14" stroke="rgba(255,255,255,0.7)" strokeWidth="2" strokeLinecap="round"/></svg>
+          <svg width="16" height="16" viewBox="0 0 16 16"><path d="M2 2l12 12M14 2L2 14" stroke="rgba(58,50,41,0.66)" strokeWidth="2" strokeLinecap="round"/></svg>
         </button>
       </div>
 
@@ -111,7 +111,7 @@ function ShareModal({ donor, orgName, animate, onClose, toast }) {
           <div style={{
             width: base.w, height: base.h, transform: `scale(${scale})`, transformOrigin: 'top left',
             borderRadius: 20, overflow: 'hidden',
-            boxShadow: '0 24px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(245,200,75,0.22), 0 0 40px rgba(245,200,75,0.12)',
+            boxShadow: '0 24px 60px rgba(84,65,42,0.18), 0 0 0 1px rgba(96,73,45,0.16)',
           }}>
             <ShareCardArt donor={donor} orgName={orgName} format={format} />
           </div>
@@ -129,11 +129,11 @@ function ShareModal({ donor, orgName, animate, onClose, toast }) {
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="share-secondary" onClick={() => toast('Saved to Photos')}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke="rgba(245,200,75,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke="rgba(86,99,78,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             Save Image
           </button>
           <button className="share-secondary" onClick={() => toast('Link copied')}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 15l6-6M10 6l1-1a4 4 0 016 6l-1 1M14 18l-1 1a4 4 0 01-6-6l1-1" stroke="rgba(245,200,75,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 15l6-6M10 6l1-1a4 4 0 016 6l-1 1M14 18l-1 1a4 4 0 01-6-6l1-1" stroke="rgba(86,99,78,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             Copy Link
           </button>
         </div>
