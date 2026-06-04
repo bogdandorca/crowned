@@ -44,4 +44,31 @@ function rankedFor(tab) {
   });
 }
 
-Object.assign(window, { DONORS, fullName, initials, fmtMoney, rankedFor });
+function projectedRankForGift({ donorId, tab = 'all', giftAmount = 0 }) {
+  const key = tab === 'month' ? 'thisMonth' : 'allTime';
+  const gift = Math.max(0, Number(giftAmount) || 0);
+  const ranked = rankedFor(tab);
+  const donor = ranked.find(d => d.id === donorId);
+  if (!donor) return null;
+
+  const projectedTotal = donor.amount + gift;
+  const ahead = ranked.filter(d => d.id !== donorId && d.amount >= projectedTotal);
+  const projectedRank = ahead.length + 1;
+  const next = ranked.find(d => d.rank === donor.rank - 1) || null;
+  const thresholdToNext = next ? Math.max(0, next.amount - donor.amount + 1) : 0;
+  const remainingToNext = Math.max(0, thresholdToNext - gift);
+
+  return {
+    donor,
+    currentRank: donor.rank,
+    projectedRank,
+    currentTotal: donor.amount,
+    projectedTotal,
+    giftAmount: gift,
+    thresholdToNext,
+    remainingToNext,
+    nextRankLabel: next ? `No. ${next.rank}` : `No. ${donor.rank}`,
+  };
+}
+
+Object.assign(window, { DONORS, fullName, initials, fmtMoney, rankedFor, projectedRankForGift });

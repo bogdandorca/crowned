@@ -46,7 +46,8 @@ function PodiumCard({ donor, animate, onShare, idx }) {
       className={animate ? 'podium-pop' : ''}
       style={{
         minWidth: 0, minHeight: isOne ? 232 : 196, display: 'flex', flexDirection: 'column',
-        justifyContent: 'flex-start', padding: isOne ? 20 : 16,
+        justifyContent: 'flex-start', padding: isOne ? 20 : 16, paddingRight: isOne ? 112 : 92,
+        position: 'relative',
         borderRadius: 14, cursor: 'pointer',
         background: isOne
           ? 'linear-gradient(155deg, rgba(255,255,255,0.76), rgba(236,221,226,0.64))'
@@ -57,22 +58,22 @@ function PodiumCard({ donor, animate, onShare, idx }) {
       }}
       onClick={() => onShare(donor)}
     >
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14 }}>
-        <div className="sans" style={{
-          fontSize: 10, fontWeight: 800, letterSpacing: 2, textTransform: 'uppercase',
-          color: 'rgba(58,50,41,0.46)',
-        }}>
-          No. {donor.rank}
-        </div>
-        <div style={{ position: 'relative' }}>
-          <Avatar donor={donor} size={m.av} ring={m.ring} initialsColor="#4a3b27" />
-          <MedalBadge rank={donor.rank} />
-        </div>
+      <div className="sans" style={{
+        fontSize: 10, fontWeight: 800, letterSpacing: 2, textTransform: 'uppercase',
+        color: 'rgba(58,50,41,0.46)',
+      }}>
+        No. {donor.rank}
+      </div>
+      <div className="patron-card-avatar" style={{
+        position: 'absolute', top: isOne ? 20 : 16, right: isOne ? 20 : 16,
+      }}>
+        <Avatar donor={donor} size={m.av} ring={m.ring} initialsColor="#4a3b27" />
+        <MedalBadge rank={donor.rank} />
       </div>
 
       <div>
         <div className="serif" style={{
-          marginTop: isOne ? 26 : 20, lineHeight: 0.98,
+          marginTop: isOne ? 18 : 14, lineHeight: 0.98,
           fontSize: isOne ? 34 : 25, fontWeight: 600, color: '#302b26', letterSpacing: -0.3,
         }}>
           {fullName(donor)}

@@ -36,7 +36,7 @@ function PaymentTile({ label, glyph, bg, onClick, dark = true }) {
     <button
       onClick={onClick}
       style={{
-        flex: 1, minHeight: 56, borderRadius: 14, border: dark ? '1px solid rgba(255,255,255,0.08)' : 'none',
+        flex: 1, minHeight: 56, borderRadius: 14, border: dark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(96,73,45,0.14)',
         cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
         background: bg,
         color: dark ? '#fff' : '#1a1206',
@@ -106,11 +106,57 @@ function CardGlyph() {
   );
 }
 
-function DonateModal({ orgName, animate, onClose, toast }) {
+function RankProjectionPanel({ projection }) {
+  if (!projection) return null;
+  const moved = projection.projectedRank < projection.currentRank;
+  const title = moved
+    ? `You move to No. ${projection.projectedRank}`
+    : `You stay at No. ${projection.currentRank}`;
+  const detail = moved
+    ? `${fmtMoney(projection.projectedTotal)} puts you ahead of ${projection.nextRankLabel}.`
+    : projection.remainingToNext > 0
+      ? `${fmtMoney(projection.remainingToNext)} more to reach ${projection.nextRankLabel}.`
+      : 'You already hold the leading place.';
+
+  return (
+    <div style={{
+      marginTop: 12, padding: 14, borderRadius: 16,
+      background: 'linear-gradient(145deg, rgba(255,250,241,0.74), rgba(230,237,240,0.58))',
+      border: '1px solid rgba(96,73,45,0.15)',
+      boxShadow: '0 12px 28px rgba(84,65,42,0.08)',
+    }}>
+      <div className="sans" style={{
+        fontSize: 9.5, letterSpacing: 2.1, textTransform: 'uppercase',
+        color: 'rgba(58,50,41,0.48)', marginBottom: 10,
+      }}>
+        Projected rank
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+        <div>
+          <div className="sans" style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 1.4, color: 'rgba(58,50,41,0.44)' }}>Current</div>
+          <div className="serif" style={{ fontSize: 24, fontWeight: 600, color: '#302b26' }}>No. {projection.currentRank}</div>
+        </div>
+        <div>
+          <div className="sans" style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 1.4, color: 'rgba(58,50,41,0.44)' }}>After gift</div>
+          <div className="serif" style={{ fontSize: 24, fontWeight: 600, color: moved ? '#56634e' : '#302b26' }}>No. {projection.projectedRank}</div>
+        </div>
+      </div>
+      <div className="serif" style={{ fontSize: 20, fontWeight: 600, color: '#302b26', lineHeight: 1.15 }}>
+        {title}
+      </div>
+      <div className="sans" style={{ marginTop: 6, fontSize: 12.5, lineHeight: 1.45, color: 'rgba(58,50,41,0.62)' }}>
+        {detail}
+      </div>
+    </div>
+  );
+}
+
+function DonateModal({ orgName, tab = 'all', animate, onClose, toast }) {
   const [amount, setAmount] = useState(50);
   const [customStr, setCustomStr] = useState('');
   const presets = [25, 50, 100, 250];
   const isCustom = !presets.includes(amount);
+  const projection = projectedRankForGift({ donorId: 'tudi', tab, giftAmount: amount });
 
   const onPickPreset = (p) => {
     setAmount(p);
@@ -251,6 +297,7 @@ function DonateModal({ orgName, animate, onClose, toast }) {
               </span>
             )}
           </div>
+          <RankProjectionPanel projection={projection} />
         </div>
 
         {/* payment options */}
@@ -267,14 +314,7 @@ function DonateModal({ orgName, animate, onClose, toast }) {
               <PaymentTile label="" glyph={<GPayGlyph />} bg="#fff" dark={false} onClick={() => handlePay('Google Pay')} />
             </div>
             <PaymentTile label="" glyph={<PayPalGlyph />} bg="#ffc439" dark={false} onClick={() => handlePay('PayPal')} />
-            <button
-              onClick={() => handlePay('Card')}
-              className="share-secondary"
-              style={{ width: '100%', height: 50, borderRadius: 14 }}
-            >
-              <CardGlyph />
-              Credit or debit card
-            </button>
+            <PaymentTile label="Credit or debit card" glyph={<CardGlyph />} bg="rgba(255,250,241,0.62)" dark={false} onClick={() => handlePay('Card')} />
           </div>
         </div>
 

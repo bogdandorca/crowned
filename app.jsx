@@ -115,6 +115,7 @@ function App() {
     '--champagne': champagne,
     height: '100%',
   };
+  const pageGutter = 'clamp(24px, 6vw, 104px)';
 
   return (
     <div style={{
@@ -126,11 +127,11 @@ function App() {
         linear-gradient(145deg, ${pastelSurface} 0%, #f3ebdf 50%, #e9eef0 100%)
       `,
     }}>
-      <main style={{ width: 'min(100%, 980px)', margin: '0 auto', padding: '0 22px' }}>
+      <main style={{ width: '100%', margin: 0, paddingLeft: pageGutter, paddingRight: pageGutter }}>
           {/* sticky header */}
           <div style={{
-            position: 'sticky', top: 0, zIndex: 30, paddingTop: 30, paddingBottom: 14, margin: '0 -22px',
-            background: 'linear-gradient(rgba(251,247,240,0.96), rgba(251,247,240,0.82) 78%, rgba(251,247,240,0))',
+            position: 'sticky', top: 0, zIndex: 30, paddingTop: 30, paddingBottom: 14,
+            background: 'linear-gradient(rgba(251,247,240,0.88), rgba(251,247,240,0.68) 78%, rgba(251,247,240,0))',
             backdropFilter: 'blur(10px)',
           }}>
             <Header orgName={t.orgName} onRefresh={refresh} season={tab === 'month' ? 'May 2026 · Live standings' : 'Since inception - 2026'} />
@@ -171,7 +172,7 @@ function App() {
 
           {/* donate modal */}
           {donateOpen && (
-            <DonateModal orgName={t.orgName} animate={anim} onClose={() => setDonateOpen(false)} toast={toast} />
+            <DonateModal orgName={t.orgName} tab={tab} animate={anim} onClose={() => setDonateOpen(false)} toast={toast} />
           )}
 
           {/* toast */}
