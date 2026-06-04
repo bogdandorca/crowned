@@ -16,6 +16,13 @@ assert(
   'large-screen layout should use a full-width website shell instead of a narrow centered app canvas'
 );
 assert(
+  app.includes('headerBleed') &&
+    app.includes('marginLeft: headerBleed') &&
+    app.includes('paddingLeft: pageGutter') &&
+    app.includes('site-header-inner'),
+  'sticky header background should span the full page width while centering its content'
+);
+assert(
   !app.includes('<GoldParticles') && !app.includes('<Confetti'),
   'main page should not render casino-style particles or confetti'
 );
@@ -40,12 +47,28 @@ assert(
   'credit card payment option should use the same PaymentTile sizing as the other payment buttons'
 );
 assert(
+  donate.includes('donate-overlay') &&
+    donate.includes('donate-modal-panel') &&
+    donate.includes("maxHeight: 'min(760px, calc(100vh - 64px))'") &&
+    donate.includes('boxShadow:') &&
+    donate.includes('borderRadius: 22'),
+  'desktop donate modal should be a contained dialog rather than a full-height sheet'
+);
+assert(
   donate.includes('signedInDonorId') &&
     donate.includes("setSignedInDonorId('tudi')") &&
     donate.includes('!signedInDonorId ?') &&
     donate.includes('signedInDonorId &&') &&
     donate.includes("projectedRankForGift({ donorId: signedInDonorId, tab, giftAmount: amount })"),
   'donation modal should replace Google sign-in with projected rank only after mocked Google login'
+);
+assert(
+  !donate.includes('You move to') &&
+    !donate.includes('You stay at') &&
+    donate.includes('rankNumberStyle') &&
+    donate.includes('fontSize: 42') &&
+    donate.includes('After gift'),
+  'projected rank panel should use large rank numbers and avoid redundant movement copy'
 );
 
 console.log('pastel-luxury redesign regression passed');

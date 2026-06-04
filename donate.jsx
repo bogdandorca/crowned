@@ -109,18 +109,21 @@ function CardGlyph() {
 function RankProjectionPanel({ projection }) {
   if (!projection) return null;
   const moved = projection.projectedRank < projection.currentRank;
-  const title = moved
-    ? `You move to No. ${projection.projectedRank}`
-    : `You stay at No. ${projection.currentRank}`;
   const detail = moved
-    ? `${fmtMoney(projection.projectedTotal)} puts you ahead of ${projection.nextRankLabel}.`
+    ? `${fmtMoney(projection.projectedTotal)} projected total.`
     : projection.remainingToNext > 0
       ? `${fmtMoney(projection.remainingToNext)} more to reach ${projection.nextRankLabel}.`
       : 'You already hold the leading place.';
+  const rankNumberStyle = {
+    fontSize: 42,
+    fontWeight: 700,
+    lineHeight: 0.9,
+    color: '#302b26',
+  };
 
   return (
     <div style={{
-      marginTop: 12, padding: 14, borderRadius: 16,
+      marginTop: 12, padding: 16, borderRadius: 16,
       background: 'linear-gradient(145deg, rgba(255,250,241,0.74), rgba(230,237,240,0.58))',
       border: '1px solid rgba(96,73,45,0.15)',
       boxShadow: '0 12px 28px rgba(84,65,42,0.08)',
@@ -131,20 +134,25 @@ function RankProjectionPanel({ projection }) {
       }}>
         Projected rank
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
-        <div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, alignItems: 'end' }}>
+        <div style={{
+          padding: '12px 10px', borderRadius: 12,
+          background: 'rgba(255,250,241,0.48)',
+          border: '1px solid rgba(96,73,45,0.11)',
+        }}>
           <div className="sans" style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 1.4, color: 'rgba(58,50,41,0.44)' }}>Current</div>
-          <div className="serif" style={{ fontSize: 24, fontWeight: 600, color: '#302b26' }}>No. {projection.currentRank}</div>
+          <div className="serif" style={rankNumberStyle}>No. {projection.currentRank}</div>
         </div>
-        <div>
+        <div style={{
+          padding: '12px 10px', borderRadius: 12,
+          background: moved ? 'rgba(86,99,78,0.12)' : 'rgba(255,250,241,0.48)',
+          border: moved ? '1px solid rgba(86,99,78,0.24)' : '1px solid rgba(96,73,45,0.11)',
+        }}>
           <div className="sans" style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: 1.4, color: 'rgba(58,50,41,0.44)' }}>After gift</div>
-          <div className="serif" style={{ fontSize: 24, fontWeight: 600, color: moved ? '#56634e' : '#302b26' }}>No. {projection.projectedRank}</div>
+          <div className="serif" style={{ ...rankNumberStyle, color: moved ? '#56634e' : '#302b26' }}>No. {projection.projectedRank}</div>
         </div>
       </div>
-      <div className="serif" style={{ fontSize: 20, fontWeight: 600, color: '#302b26', lineHeight: 1.15 }}>
-        {title}
-      </div>
-      <div className="sans" style={{ marginTop: 6, fontSize: 12.5, lineHeight: 1.45, color: 'rgba(58,50,41,0.62)' }}>
+      <div className="sans" style={{ marginTop: 10, fontSize: 14, fontWeight: 700, lineHeight: 1.35, color: moved ? '#56634e' : 'rgba(58,50,41,0.68)' }}>
         {detail}
       </div>
     </div>
@@ -182,152 +190,168 @@ function DonateModal({ orgName, tab = 'all', animate, onClose, toast }) {
 
   return (
     <div
-      className={animate ? 'sheet-in' : ''}
+      className="donate-overlay"
       style={{
         position: 'fixed', inset: 0, zIndex: 70,
         background: 'rgba(251,247,240,0.88)',
         backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)',
-        display: 'flex', flexDirection: 'column',
-        width: 'min(100%, 520px)', margin: '0 auto',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 'clamp(18px, 4vw, 48px)',
       }}
     >
-      {/* header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '26px 18px 8px' }}>
-        <span className="serif" style={{ fontSize: 25, fontWeight: 600, whiteSpace: 'nowrap', color: '#302b26' }}>
-          Make a Gift
-        </span>
-        <button onClick={onClose} className="icon-btn" aria-label="Close">
-          <svg width="16" height="16" viewBox="0 0 16 16">
-            <path d="M2 2l12 12M14 2L2 14" stroke="rgba(58,50,41,0.66)" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
-        </button>
-      </div>
+      <div
+        className={`donate-modal-panel ${animate ? 'sheet-in' : ''}`}
+        style={{
+          width: 'min(100%, 520px)',
+          maxHeight: 'min(760px, calc(100vh - 64px))',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          borderRadius: 22,
+          background: 'rgba(251,247,240,0.94)',
+          border: '1px solid rgba(96,73,45,0.14)',
+          boxShadow: '0 32px 80px rgba(84,65,42,0.22)',
+        }}
+      >
+        {/* header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '26px 18px 8px' }}>
+          <span className="serif" style={{ fontSize: 25, fontWeight: 600, whiteSpace: 'nowrap', color: '#302b26' }}>
+            Make a Gift
+          </span>
+          <button onClick={onClose} className="icon-btn" aria-label="Close">
+            <svg width="16" height="16" viewBox="0 0 16 16">
+              <path d="M2 2l12 12M14 2L2 14" stroke="rgba(58,50,41,0.66)" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          </button>
+        </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 18px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {!signedInDonorId ? (
-          <div style={{
-            padding: 16, borderRadius: 18,
-            background: 'rgba(255,250,241,0.62)',
-            border: '1px solid rgba(96,73,45,0.14)',
-            boxShadow: '0 18px 42px rgba(84,65,42,0.10)',
-          }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '8px 18px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {!signedInDonorId ? (
+            <div style={{
+              padding: 16, borderRadius: 18,
+              background: 'rgba(255,250,241,0.62)',
+              border: '1px solid rgba(96,73,45,0.14)',
+              boxShadow: '0 18px 42px rgba(84,65,42,0.10)',
+            }}>
+              <div className="sans" style={{
+                fontSize: 9.5, letterSpacing: 2.4, textTransform: 'uppercase',
+                color: 'rgba(58,50,41,0.48)', marginBottom: 6,
+              }}
+              >
+                Sign in first
+              </div>
+              <div className="serif" style={{ fontSize: 20, fontWeight: 600, lineHeight: 1.2, color: '#302b26' }}>
+                Let every gift carry your name
+              </div>
+              <div className="sans" style={{ marginTop: 8, fontSize: 12.5, lineHeight: 1.5, color: 'rgba(58,50,41,0.62)' }}>
+                Sign in with Google so your donations accumulate under one profile and lift you up the leaderboard. Guest gifts won&apos;t add to your name.
+              </div>
+              <button
+                onClick={handleGoogle}
+                style={{
+                  marginTop: 14, width: '100%', height: 48, borderRadius: 12, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                  background: '#fff', color: '#1f1f1f', border: 'none',
+                  fontFamily: 'Archivo, sans-serif', fontSize: 15, fontWeight: 700,
+                  boxShadow: '0 8px 18px rgba(84,65,42,0.12)', transition: 'transform .15s ease',
+                }}
+                onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.98)')}
+                onMouseUp={(e) => (e.currentTarget.style.transform = '')}
+                onMouseLeave={(e) => (e.currentTarget.style.transform = '')}
+              >
+                <GoogleG size={20} />
+                Continue with Google
+              </button>
+            </div>
+          ) : (
+            signedInDonorId && <RankProjectionPanel projection={projection} />
+          )}
+
+          {/* divider */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '4px 4px' }}>
+            <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, rgba(96,73,45,0.16))' }} />
+            <span className="sans" style={{ fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(58,50,41,0.45)' }}>
+              Or pay as guest
+            </span>
+            <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(96,73,45,0.16), transparent)' }} />
+          </div>
+
+          {/* amount presets */}
+          <div>
             <div className="sans" style={{
               fontSize: 9.5, letterSpacing: 2.4, textTransform: 'uppercase',
-              color: 'rgba(58,50,41,0.48)', marginBottom: 6,
+              color: 'rgba(58,50,41,0.48)', marginBottom: 8,
             }}>
-              Sign in first
+              Amount
             </div>
-            <div className="serif" style={{ fontSize: 20, fontWeight: 600, lineHeight: 1.2, color: '#302b26' }}>
-              Let every gift carry your name
+            <div style={{ display: 'flex', gap: 8 }}>
+              {presets.map((p) => (
+                <button
+                  key={p}
+                  onClick={() => onPickPreset(p)}
+                  className="sans"
+                  style={{
+                    flex: 1, height: 44, borderRadius: 12, cursor: 'pointer',
+                    fontSize: 15, fontWeight: 800, fontVariantNumeric: 'tabular-nums',
+                    background: amount === p && !isCustom ? '#56634e' : 'rgba(255,250,241,0.62)',
+                    color: amount === p && !isCustom ? '#fffaf1' : 'rgba(58,50,41,0.8)',
+                    border: amount === p && !isCustom ? 'none' : '1px solid rgba(96,73,45,0.14)',
+                    transition: 'all .18s ease',
+                  }}
+                >
+                  ${p}
+                </button>
+              ))}
             </div>
-            <div className="sans" style={{ marginTop: 8, fontSize: 12.5, lineHeight: 1.5, color: 'rgba(58,50,41,0.62)' }}>
-              Sign in with Google so your donations accumulate under one profile and lift you up the leaderboard. Guest gifts won&apos;t add to your name.
-            </div>
-            <button
-              onClick={handleGoogle}
-              style={{
-                marginTop: 14, width: '100%', height: 48, borderRadius: 12, cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                background: '#fff', color: '#1f1f1f', border: 'none',
-                fontFamily: 'Archivo, sans-serif', fontSize: 15, fontWeight: 700,
-                boxShadow: '0 8px 18px rgba(84,65,42,0.12)', transition: 'transform .15s ease',
-              }}
-              onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.98)')}
-              onMouseUp={(e) => (e.currentTarget.style.transform = '')}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = '')}
-            >
-              <GoogleG size={20} />
-              Continue with Google
-            </button>
-          </div>
-        ) : (
-          signedInDonorId && <RankProjectionPanel projection={projection} />
-        )}
-
-        {/* divider */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '4px 4px' }}>
-          <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, rgba(96,73,45,0.16))' }} />
-          <span className="sans" style={{ fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', color: 'rgba(58,50,41,0.45)' }}>
-            Or pay as guest
-          </span>
-          <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(96,73,45,0.16), transparent)' }} />
-        </div>
-
-        {/* amount presets */}
-        <div>
-          <div className="sans" style={{
-            fontSize: 9.5, letterSpacing: 2.4, textTransform: 'uppercase',
-            color: 'rgba(58,50,41,0.48)', marginBottom: 8,
-          }}>
-            Amount
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {presets.map((p) => (
-              <button
-                key={p}
-                onClick={() => onPickPreset(p)}
+            <div style={{
+              marginTop: 8, display: 'flex', alignItems: 'center',
+              height: 50, borderRadius: 14, padding: '0 14px',
+              background: isCustom ? 'rgba(255,250,241,0.78)' : 'rgba(255,250,241,0.54)',
+              border: isCustom ? '1px solid rgba(86,99,78,0.48)' : '1px solid rgba(96,73,45,0.14)',
+              transition: 'all .18s ease',
+            }}>
+              <span className="sans" style={{ fontSize: 17, fontWeight: 800, color: 'rgba(58,50,41,0.48)', marginRight: 8 }}>$</span>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={customStr}
+                onChange={(e) => onCustomChange(e.target.value)}
+                placeholder="Custom amount"
                 className="sans"
                 style={{
-                  flex: 1, height: 44, borderRadius: 12, cursor: 'pointer',
-                  fontSize: 15, fontWeight: 800, fontVariantNumeric: 'tabular-nums',
-                  background: amount === p && !isCustom ? '#56634e' : 'rgba(255,250,241,0.62)',
-                  color: amount === p && !isCustom ? '#fffaf1' : 'rgba(58,50,41,0.8)',
-                  border: amount === p && !isCustom ? 'none' : '1px solid rgba(96,73,45,0.14)',
-                  transition: 'all .18s ease',
+                  flex: 1, background: 'transparent', border: 'none', outline: 'none',
+                  color: '#302b26', fontSize: 17, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
                 }}
-              >
-                ${p}
-              </button>
-            ))}
-          </div>
-          <div style={{
-            marginTop: 8, display: 'flex', alignItems: 'center',
-            height: 50, borderRadius: 14, padding: '0 14px',
-            background: isCustom ? 'rgba(255,250,241,0.78)' : 'rgba(255,250,241,0.54)',
-            border: isCustom ? '1px solid rgba(86,99,78,0.48)' : '1px solid rgba(96,73,45,0.14)',
-            transition: 'all .18s ease',
-          }}>
-            <span className="sans" style={{ fontSize: 17, fontWeight: 800, color: 'rgba(58,50,41,0.48)', marginRight: 8 }}>$</span>
-            <input
-              type="text"
-              inputMode="decimal"
-              value={customStr}
-              onChange={(e) => onCustomChange(e.target.value)}
-              placeholder="Custom amount"
-              className="sans"
-              style={{
-                flex: 1, background: 'transparent', border: 'none', outline: 'none',
-                color: '#302b26', fontSize: 17, fontWeight: 700, fontVariantNumeric: 'tabular-nums',
-              }}
-            />
-            {isCustom && (
-              <span className="sans" style={{ fontSize: 10, letterSpacing: 1.6, textTransform: 'uppercase', color: 'rgba(86,99,78,0.85)', fontWeight: 700 }}>
-                Selected
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* payment options */}
-        <div>
-          <div className="sans" style={{
-            fontSize: 9.5, letterSpacing: 2.4, textTransform: 'uppercase',
-            color: 'rgba(58,50,41,0.48)', marginBottom: 8,
-          }}>
-            Pay with
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <PaymentTile label="" glyph={<ApplePayGlyph />} bg="#000" onClick={() => handlePay('Apple Pay')} />
-              <PaymentTile label="" glyph={<GPayGlyph />} bg="#fff" dark={false} onClick={() => handlePay('Google Pay')} />
+              />
+              {isCustom && (
+                <span className="sans" style={{ fontSize: 10, letterSpacing: 1.6, textTransform: 'uppercase', color: 'rgba(86,99,78,0.85)', fontWeight: 700 }}>
+                  Selected
+                </span>
+              )}
             </div>
-            <PaymentTile label="" glyph={<PayPalGlyph />} bg="#ffc439" dark={false} onClick={() => handlePay('PayPal')} />
-            <PaymentTile label="Credit or debit card" glyph={<CardGlyph />} bg="rgba(255,250,241,0.62)" dark={false} onClick={() => handlePay('Card')} />
           </div>
-        </div>
 
-        <div className="sans" style={{ textAlign: 'center', fontSize: 10.5, color: 'rgba(58,50,41,0.46)', lineHeight: 1.5, marginTop: 4 }}>
-          Secure checkout · 100% of your gift goes to {orgName}
+          {/* payment options */}
+          <div>
+            <div className="sans" style={{
+              fontSize: 9.5, letterSpacing: 2.4, textTransform: 'uppercase',
+              color: 'rgba(58,50,41,0.48)', marginBottom: 8,
+            }}>
+              Pay with
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <PaymentTile label="" glyph={<ApplePayGlyph />} bg="#000" onClick={() => handlePay('Apple Pay')} />
+                <PaymentTile label="" glyph={<GPayGlyph />} bg="#fff" dark={false} onClick={() => handlePay('Google Pay')} />
+              </div>
+              <PaymentTile label="" glyph={<PayPalGlyph />} bg="#ffc439" dark={false} onClick={() => handlePay('PayPal')} />
+              <PaymentTile label="Credit or debit card" glyph={<CardGlyph />} bg="rgba(255,250,241,0.62)" dark={false} onClick={() => handlePay('Card')} />
+            </div>
+          </div>
+
+          <div className="sans" style={{ textAlign: 'center', fontSize: 10.5, color: 'rgba(58,50,41,0.46)', lineHeight: 1.5, marginTop: 4 }}>
+            Secure checkout · 100% of your gift goes to {orgName}
+          </div>
         </div>
       </div>
     </div>

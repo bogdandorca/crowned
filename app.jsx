@@ -116,6 +116,7 @@ function App() {
     height: '100%',
   };
   const pageGutter = 'clamp(24px, 6vw, 104px)';
+  const headerBleed = `calc(-1 * ${pageGutter})`;
 
   return (
     <div style={{
@@ -131,12 +132,18 @@ function App() {
           {/* sticky header */}
           <div style={{
             position: 'sticky', top: 0, zIndex: 30, paddingTop: 30, paddingBottom: 14,
+            marginLeft: headerBleed,
+            marginRight: headerBleed,
+            paddingLeft: pageGutter,
+            paddingRight: pageGutter,
             background: 'linear-gradient(rgba(251,247,240,0.88), rgba(251,247,240,0.68) 78%, rgba(251,247,240,0))',
             backdropFilter: 'blur(10px)',
           }}>
-            <Header orgName={t.orgName} onRefresh={refresh} season={tab === 'month' ? 'May 2026 · Live standings' : 'Since inception - 2026'} />
-            <div style={{ marginTop: 16 }}>
-              <TabSwitch tab={tab} onChange={setTab} />
+            <div className="site-header-inner" style={{ width: '100%', maxWidth: 1120, margin: '0 auto' }}>
+              <Header orgName={t.orgName} onRefresh={refresh} season={tab === 'month' ? 'May 2026 · Live standings' : 'Since inception - 2026'} />
+              <div style={{ marginTop: 16 }}>
+                <TabSwitch tab={tab} onChange={setTab} />
+              </div>
             </div>
           </div>
 
