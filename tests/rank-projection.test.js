@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
 
-const dataPath = path.resolve(__dirname, '..', 'data.jsx');
+const dataPath = path.resolve(__dirname, '..', 'src/data/leaderboard-data.jsx');
 const dataSource = fs.readFileSync(dataPath, 'utf8');
 const context = {
   window: {},

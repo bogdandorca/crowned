@@ -1,9 +1,7 @@
-// ─────────────────────────────────────────────────────────────
-// Crowned — donor data + helpers
-// ─────────────────────────────────────────────────────────────
+// Crowned - mocked leaderboard data + ranking helpers
 
-// A single pool of 10 donors. Each tab ranks ALL of them by a different
-// amount, producing a genuine reshuffle (clean FLIP — no enter/leave).
+// A single pool of 10 donors. Each tab ranks all of them by a different
+// amount, producing a genuine reshuffle.
 const DONORS = [
   { id: 'andrei',    first: 'Andrei',    last: 'Popa',       badge: 'Founding Donor',   hue: 38,  allTime: 284500, thisMonth: 17500 },
   { id: 'tudi',      first: 'Tudi',      last: '',           badge: 'Visionary Circle', hue: 212, allTime: 251200, thisMonth: 38400 },
@@ -25,7 +23,7 @@ function fmtMoney(n) {
 }
 
 // Returns donors sorted desc by the given tab's amount, each annotated with
-// rank (1-based), the active amount, and the rank delta vs the OTHER tab.
+// rank, the active amount, and the rank delta vs the other tab.
 function rankedFor(tab) {
   const key = tab === 'month' ? 'thisMonth' : 'allTime';
   const otherKey = tab === 'month' ? 'allTime' : 'thisMonth';
@@ -39,7 +37,7 @@ function rankedFor(tab) {
   return thisOrder.map((id, i) => {
     const d = DONORS.find(x => x.id === id);
     const rank = i + 1;
-    const delta = otherRankOf[id] - rank; // +ve = climbed vs other tab
+    const delta = otherRankOf[id] - rank;
     return { ...d, rank, amount: d[key], delta };
   });
 }
@@ -71,4 +69,11 @@ function projectedRankForGift({ donorId, tab = 'all', giftAmount = 0 }) {
   };
 }
 
-Object.assign(window, { DONORS, fullName, initials, fmtMoney, rankedFor, projectedRankForGift });
+Object.assign(window, {
+  DONORS,
+  fullName,
+  initials,
+  fmtMoney,
+  rankedFor,
+  projectedRankForGift,
+});

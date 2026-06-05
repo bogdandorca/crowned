@@ -38,9 +38,25 @@ function DeltaChip({ delta }) {
   );
 }
 
-function PodiumCard({ donor, animate, onShare, idx }) {
+function YouBadge() {
+  return (
+    <span className="sans" style={{
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      padding: '4px 8px', borderRadius: 100,
+      fontSize: 9, fontWeight: 800, letterSpacing: 1.3, textTransform: 'uppercase',
+      color: '#56634e', background: 'rgba(86,99,78,0.12)',
+      border: '1px solid rgba(86,99,78,0.24)',
+      whiteSpace: 'nowrap',
+    }}>
+      You
+    </span>
+  );
+}
+
+function PodiumCard({ donor, animate, onShare, idx, activeDonorId }) {
   const m = MEDAL[donor.rank];
   const isOne = donor.rank === 1;
+  const isActiveDonor = donor.id === activeDonorId;
   return (
     <div
       className={animate ? 'podium-pop' : ''}
@@ -51,18 +67,27 @@ function PodiumCard({ donor, animate, onShare, idx }) {
         borderRadius: 14, cursor: 'pointer',
         background: isOne
           ? 'linear-gradient(155deg, rgba(255,255,255,0.76), rgba(236,221,226,0.64))'
-          : 'rgba(255,255,255,0.48)',
-        border: isOne ? '1px solid rgba(142,109,55,0.24)' : '1px solid rgba(96,73,45,0.12)',
-        boxShadow: isOne ? '0 24px 58px rgba(84,65,42,0.12)' : '0 16px 38px rgba(84,65,42,0.08)',
+          : isActiveDonor
+            ? 'linear-gradient(145deg, rgba(255,250,241,0.72), rgba(230,237,240,0.54))'
+            : 'rgba(255,255,255,0.48)',
+        border: isActiveDonor
+          ? '1px solid rgba(86,99,78,0.34)'
+          : isOne ? '1px solid rgba(142,109,55,0.24)' : '1px solid rgba(96,73,45,0.12)',
+        boxShadow: isActiveDonor
+          ? '0 22px 54px rgba(86,99,78,0.14)'
+          : isOne ? '0 24px 58px rgba(84,65,42,0.12)' : '0 16px 38px rgba(84,65,42,0.08)',
         animationDelay: animate ? (idx * 90) + 'ms' : '0ms',
       }}
       onClick={() => onShare(donor)}
     >
-      <div className="sans" style={{
-        fontSize: 10, fontWeight: 800, letterSpacing: 2, textTransform: 'uppercase',
-        color: 'rgba(58,50,41,0.46)',
-      }}>
-        No. {donor.rank}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="sans" style={{
+          fontSize: 10, fontWeight: 800, letterSpacing: 2, textTransform: 'uppercase',
+          color: 'rgba(58,50,41,0.46)',
+        }}>
+          No. {donor.rank}
+        </div>
+        {isActiveDonor && <YouBadge />}
       </div>
       <div className="patron-card-avatar" style={{
         position: 'absolute', top: isOne ? 20 : 16, right: isOne ? 20 : 16,
@@ -123,7 +148,7 @@ function ShareGlyph({ size = 14, color = 'currentColor' }) {
   );
 }
 
-function Podium({ top3, animate, onShare, accent }) {
+function Podium({ top3, animate, onShare, accent, activeDonorId }) {
   const ordered = top3.filter(Boolean);
   const leader = ordered[0];
   return (
@@ -161,11 +186,11 @@ function Podium({ top3, animate, onShare, accent }) {
         display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12,
       }}>
         {ordered.map((d, i) => (
-          <PodiumCard key={d.id} donor={d} animate={animate} onShare={onShare} idx={i} />
+          <PodiumCard key={d.id} donor={d} animate={animate} onShare={onShare} idx={i} activeDonorId={activeDonorId} />
         ))}
       </div>
     </div>
   );
 }
 
-Object.assign(window, { Podium, PodiumCard, Badge, MedalBadge, DeltaChip, ShareGlyph });
+Object.assign(window, { Podium, PodiumCard, Badge, MedalBadge, DeltaChip, YouBadge, ShareGlyph });

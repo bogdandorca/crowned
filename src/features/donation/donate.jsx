@@ -159,12 +159,14 @@ function RankProjectionPanel({ projection }) {
   );
 }
 
-function DonateModal({ orgName, tab = 'all', animate, onClose, toast }) {
+function DonateModal({ orgName, tab = 'all', animate, guestDonorId, signedInDonorId, onGoogleSignIn, onClose, toast }) {
   const [amount, setAmount] = useState(50);
   const [customStr, setCustomStr] = useState('');
-  const [signedInDonorId, setSignedInDonorId] = useState(null);
+  const [guestDisplayName, setGuestDisplayName] = useState(() => getGuestDonorName());
+  const [pendingGuestName, setPendingGuestName] = useState(() => getGuestDonorName());
   const presets = [25, 50, 100, 250];
   const isCustom = !presets.includes(amount);
+  const activeDonorId = signedInDonorId || guestDonorId || getOrCreateGuestDonorToken();
   const projection = signedInDonorId
     ? projectedRankForGift({ donorId: signedInDonorId, tab, giftAmount: amount })
     : null;
@@ -181,10 +183,24 @@ function DonateModal({ orgName, tab = 'all', animate, onClose, toast }) {
   };
 
   const handlePay = (label) => {
-    toast(`${label} · $${amount} to ${orgName}`);
+    const guestName = pendingGuestName.trim();
+    if (!signedInDonorId && !guestDisplayName && !guestName) {
+      toast('Add a name for your first guest gift');
+      return;
+    }
+
+    const displayName = signedInDonorId ? 'Tudi' : saveGuestDonorName(guestDisplayName || guestName);
+    if (!signedInDonorId) setGuestDisplayName(displayName);
+    const receipt = recordDonation({
+      donorId: activeDonorId,
+      displayName,
+      amount,
+      method: label,
+    });
+    toast(`${label} · $${receipt.amount} from ${receipt.displayName}`);
   };
   const handleGoogle = () => {
-    setSignedInDonorId('tudi');
+    onGoogleSignIn();
     toast('Signed in with Google as Tudi');
   };
 
@@ -244,7 +260,7 @@ function DonateModal({ orgName, tab = 'all', animate, onClose, toast }) {
                 Let every gift carry your name
               </div>
               <div className="sans" style={{ marginTop: 8, fontSize: 12.5, lineHeight: 1.5, color: 'rgba(58,50,41,0.62)' }}>
-                Sign in with Google so your donations accumulate under one profile and lift you up the leaderboard. Guest gifts won&apos;t add to your name.
+                Sign in with Google to merge gifts across devices. Guest gifts stay linked to this browser&apos;s donor ID.
               </div>
               <button
                 onClick={handleGoogle}
@@ -262,6 +278,29 @@ function DonateModal({ orgName, tab = 'all', animate, onClose, toast }) {
                 <GoogleG size={20} />
                 Continue with Google
               </button>
+              {!guestDisplayName && (
+                <div style={{ marginTop: 14 }}>
+                  <div className="sans" style={{
+                    fontSize: 9.5, letterSpacing: 2.1, textTransform: 'uppercase',
+                    color: 'rgba(58,50,41,0.48)', marginBottom: 7,
+                  }}>
+                    Guest donation name
+                  </div>
+                  <input
+                    type="text"
+                    value={pendingGuestName}
+                    onChange={(e) => setPendingGuestName(e.target.value)}
+                    placeholder="Name for this gift"
+                    className="sans"
+                    style={{
+                      width: '100%', height: 48, borderRadius: 12, padding: '0 13px',
+                      background: 'rgba(255,250,241,0.76)',
+                      border: '1px solid rgba(96,73,45,0.16)', outline: 'none',
+                      color: '#302b26', fontSize: 15, fontWeight: 700,
+                    }}
+                  />
+                </div>
+              )}
             </div>
           ) : (
             signedInDonorId && <RankProjectionPanel projection={projection} />

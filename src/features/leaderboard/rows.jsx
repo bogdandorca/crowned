@@ -2,7 +2,23 @@
 // Crowned — list rows (#4–10) with FLIP reshuffle
 // ─────────────────────────────────────────────────────────────
 
-function LeaderRow({ donor, animate, onShare }) {
+function YouBadge() {
+  return (
+    <span className="sans" style={{
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      padding: '3px 7px', borderRadius: 100,
+      fontSize: 8.5, fontWeight: 800, letterSpacing: 1.2, textTransform: 'uppercase',
+      color: '#56634e', background: 'rgba(86,99,78,0.12)',
+      border: '1px solid rgba(86,99,78,0.22)',
+      whiteSpace: 'nowrap',
+    }}>
+      You
+    </span>
+  );
+}
+
+function LeaderRow({ donor, animate, onShare, activeDonorId }) {
+  const isActiveDonor = donor.id === activeDonorId;
   return (
     <div
       className="leader-row"
@@ -10,10 +26,13 @@ function LeaderRow({ donor, animate, onShare }) {
       role="button"
       style={{
         display: 'flex', alignItems: 'center', gap: 13,
-        padding: '15px 0', position: 'relative', cursor: 'pointer',
-        background: 'transparent',
-        borderRadius: 0, border: 'none',
-        borderBottom: '1px solid rgba(96,73,45,0.11)',
+        padding: isActiveDonor ? '15px 12px' : '15px 0',
+        position: 'relative', cursor: 'pointer',
+        background: isActiveDonor ? 'rgba(255,250,241,0.46)' : 'transparent',
+        borderRadius: isActiveDonor ? 14 : 0,
+        border: isActiveDonor ? '1px solid rgba(86,99,78,0.24)' : 'none',
+        borderBottom: isActiveDonor ? '1px solid rgba(86,99,78,0.24)' : '1px solid rgba(96,73,45,0.11)',
+        boxShadow: isActiveDonor ? '0 14px 34px rgba(86,99,78,0.08)' : 'none',
       }}
     >
       <div className="row-accent" />
@@ -22,10 +41,13 @@ function LeaderRow({ donor, animate, onShare }) {
       </div>
       <Avatar donor={donor} size={42} ring="plain" initialsColor="#4a3b27" />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div className="serif" style={{
-          fontSize: 19, fontWeight: 600, lineHeight: 1.1, color: '#302b26',
-          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-        }}>{fullName(donor)}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+          <div className="serif" style={{
+            fontSize: 19, fontWeight: 600, lineHeight: 1.1, color: '#302b26',
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          }}>{fullName(donor)}</div>
+          {isActiveDonor && <YouBadge />}
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 3 }}>
           <span className="sans" style={{
             fontSize: 9, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase',
@@ -49,7 +71,7 @@ function LeaderRow({ donor, animate, onShare }) {
   );
 }
 
-function LeaderList({ rows, animate, onShare }) {
+function LeaderList({ rows, animate, onShare, activeDonorId }) {
   const refs = useRef({});
   const prev = useRef({});
   const lastSig = useRef(null);
@@ -93,11 +115,11 @@ function LeaderList({ rows, animate, onShare }) {
     }}>
       {rows.map(d => (
         <div key={d.id} ref={el => { refs.current[d.id] = el; }} style={{ position: 'relative' }}>
-          <LeaderRow donor={d} animate={animate} onShare={onShare} />
+          <LeaderRow donor={d} animate={animate} onShare={onShare} activeDonorId={activeDonorId} />
         </div>
       ))}
     </div>
   );
 }
 
-Object.assign(window, { LeaderRow, LeaderList });
+Object.assign(window, { LeaderRow, LeaderList, YouBadge });

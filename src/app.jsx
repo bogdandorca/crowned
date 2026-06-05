@@ -79,12 +79,15 @@ function App() {
   const [share, setShare] = useState(null);
   const [donateOpen, setDonateOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState(null);
+  const [guestDonorId] = useState(() => getOrCreateGuestDonorToken());
+  const [signedInDonorId, setSignedInDonorId] = useState(null);
   const toastTimer = useRef(null);
 
   const anim = !!t.animations;
   const ranked = rankedFor(tab);
   const top3 = ranked.slice(0, 3);
   const rest = ranked.slice(3);
+  const activeDonorId = signedInDonorId;
 
   const toast = (msg) => {
     setToastMsg(msg);
@@ -149,7 +152,7 @@ function App() {
 
           {/* podium */}
           <div style={{ position: 'relative', zIndex: 2, marginTop: 28 }}>
-            <Podium top3={top3} animate={anim} onShare={setShare} accent={t.accent} />
+            <Podium top3={top3} animate={anim} onShare={setShare} accent={t.accent} activeDonorId={activeDonorId} />
           </div>
 
           {/* divider */}
@@ -161,7 +164,7 @@ function App() {
 
           {/* list 4–10 */}
           <div style={{ position: 'relative', zIndex: 2 }}>
-            <LeaderList rows={rest} animate={anim} onShare={setShare} />
+            <LeaderList rows={rest} animate={anim} onShare={setShare} activeDonorId={activeDonorId} />
           </div>
 
           {/* footer */}
@@ -179,7 +182,16 @@ function App() {
 
           {/* donate modal */}
           {donateOpen && (
-            <DonateModal orgName={t.orgName} tab={tab} animate={anim} onClose={() => setDonateOpen(false)} toast={toast} />
+            <DonateModal
+              orgName={t.orgName}
+              tab={tab}
+              animate={anim}
+              guestDonorId={guestDonorId}
+              signedInDonorId={signedInDonorId}
+              onGoogleSignIn={() => setSignedInDonorId('tudi')}
+              onClose={() => setDonateOpen(false)}
+              toast={toast}
+            />
           )}
 
           {/* toast */}

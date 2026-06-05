@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..');
-const app = fs.readFileSync(path.join(root, 'app.jsx'), 'utf8');
+const app = fs.readFileSync(path.join(root, 'src/app.jsx'), 'utf8');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const iosFramePath = path.join(root, 'ios-frame.jsx');
 
