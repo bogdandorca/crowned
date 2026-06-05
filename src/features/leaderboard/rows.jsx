@@ -2,7 +2,7 @@
 // Crowned — list rows (#4–10) with FLIP reshuffle
 // ─────────────────────────────────────────────────────────────
 
-function YouBadge() {
+function RowYouBadge() {
   return (
     <span className="sans" style={{
       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -46,7 +46,7 @@ function LeaderRow({ donor, animate, onShare, activeDonorId }) {
             fontSize: 19, fontWeight: 600, lineHeight: 1.1, color: '#302b26',
             whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }}>{fullName(donor)}</div>
-          {isActiveDonor && <YouBadge />}
+          {isActiveDonor && <RowYouBadge />}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 3 }}>
           <span className="sans" style={{
@@ -122,4 +122,4 @@ function LeaderList({ rows, animate, onShare, activeDonorId }) {
   );
 }
 
-Object.assign(window, { LeaderRow, LeaderList, YouBadge });
+Object.assign(window, { LeaderRow, LeaderList, RowYouBadge });

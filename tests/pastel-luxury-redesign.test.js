@@ -83,8 +83,16 @@ assert(
     podium.includes('isActiveDonor') &&
     podium.includes('YouBadge') &&
     rows.includes('isActiveDonor') &&
-    rows.includes('YouBadge'),
+    rows.includes('RowYouBadge'),
   'leaderboard should highlight the signed-in donor across podium cards and standing rows'
+);
+assert(
+  podium.includes('function YouBadge') &&
+    rows.includes('function RowYouBadge') &&
+    rows.includes('<RowYouBadge />') &&
+    !rows.includes('function YouBadge') &&
+    !rows.includes('LeaderRow, LeaderList, YouBadge'),
+  'row and podium active donor badges should not collide as browser globals'
 );
 assert(
   app.includes('getOrCreateGuestDonorToken') &&
