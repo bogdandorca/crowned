@@ -7,6 +7,7 @@ const app = fs.readFileSync(path.join(root, 'src/app.jsx'), 'utf8');
 const podium = fs.readFileSync(path.join(root, 'src/features/leaderboard/podium.jsx'), 'utf8');
 const donate = fs.readFileSync(path.join(root, 'src/features/donation/donate.jsx'), 'utf8');
 const rows = fs.readFileSync(path.join(root, 'src/features/leaderboard/rows.jsx'), 'utf8');
+const share = fs.readFileSync(path.join(root, 'src/features/share/share-card.jsx'), 'utf8');
 const atoms = fs.readFileSync(path.join(root, 'src/ui/atoms.jsx'), 'utf8');
 
 assert(
@@ -52,6 +53,12 @@ assert(
   'top-three card avatar should not create vertical space between rank label and donor name'
 );
 assert(
+  !podium.includes('<Badge label={donor.badge}') &&
+    !rows.includes('{donor.badge}') &&
+    !share.includes('<Badge label={donor.badge}'),
+  'donor badge subtitles should not render in podium, standing rows, or share cards'
+);
+assert(
   donate.includes('Make a Gift') && !donate.includes('Take the Crown'),
   'primary donate CTA should use restrained giving language'
 );
@@ -69,12 +76,13 @@ assert(
 );
 assert(
   app.includes('signedInDonorId') &&
+    app.includes("useState('tudi')") &&
     app.includes("setSignedInDonorId('tudi')") &&
     donate.includes('signedInDonorId') &&
     donate.includes('!signedInDonorId ?') &&
     donate.includes('signedInDonorId &&') &&
     donate.includes("projectedRankForGift({ donorId: signedInDonorId, tab, giftAmount: amount })"),
-  'donation modal should replace Google sign-in with projected rank only after mocked Google login'
+  'donation modal should use mocked signed-in donor Tudi for projected rank'
 );
 assert(
   app.includes('activeDonorId') &&
@@ -85,6 +93,14 @@ assert(
     rows.includes('isActiveDonor') &&
     rows.includes('RowYouBadge'),
   'leaderboard should highlight the signed-in donor across podium cards and standing rows'
+);
+assert(
+  app.includes('leaderboardDisplayFor({ donorId: activeDonorId, tab })') &&
+    app.includes('nearbyRows={nearbyRows}') &&
+    rows.includes('function StandingsSeparator') &&
+    rows.includes('nearbyRows.length > 0') &&
+    rows.includes('<StandingsSeparator />'),
+  'leaderboard should add a separated nearby row window when the signed-in donor is below the top 10'
 );
 assert(
   podium.includes('function YouBadge') &&

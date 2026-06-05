@@ -103,7 +103,6 @@ function PodiumCard({ donor, animate, onShare, idx, activeDonorId }) {
         }}>
           {fullName(donor)}
         </div>
-        <Badge label={donor.badge} rank={donor.rank} />
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 'auto', paddingTop: 22 }}>

@@ -22,12 +22,13 @@ Last reviewed: June 5, 2026
 | All Time / This Month tab switch | Live / mocked data | `allTime` and `thisMonth` fields in `DONORS` | Re-sorts the same donor pool by the selected total and changes season copy. |
 | Rank delta indicators | Live / mocked data | Derived from the two mocked leaderboard orderings | Shows movement relative to the other tab's ranking. |
 | Leading patron hero | Live / mocked data | Top donor from `rankedFor(tab)` | Highlights the current first-place donor with name and animated amount. |
-| Top-three podium cards | Live / mocked data | Top three donors from `rankedFor(tab)` | Shows rank, initials avatar, medal ring, badge, animated amount, share button, and optional "You" state. |
-| Full standings list | Live / mocked data | Remaining donors from `rankedFor(tab)` | Shows positions 4-10 with initials avatar, badge, amount, rank delta, share button, and optional "You" state. |
+| Top-three podium cards | Live / mocked data | Top three donors from `rankedFor(tab)` | Shows rank, initials avatar, medal ring, animated amount, share button, and optional "You" state. |
+| Full standings list | Live / mocked data | Display sections from `leaderboardDisplayFor({ donorId, tab })` | Shows positions 4-10 with initials avatar, amount, rank delta, share button, and optional "You" state. |
+| Current-user rank window | Live / mocked data | Signed-in donor id plus ranked mocked donors | When the signed-in donor ranks below the top 10, shows a subtle separator followed by five nearby places with the signed-in donor centered as the third row when possible. |
 | FLIP-style list reshuffle animation | Live / no data required | DOM positions and current row order | Animates row movement when the tab changes and animations are enabled. |
 | Animated donation amounts | Live / no data required | Numeric value passed to `AnimatedNumber` | Counts amounts up when values change; can be disabled through tweaks. |
 | Initials avatars and medal styling | Live / mocked data | Donor names, hue, and rank | Uses generated initials and gradient rings; no real donor photos are present. |
-| Donor badge labels | Live / mocked data | `badge` field in `DONORS` | Labels such as Founding Donor, Visionary Circle, and Patron are hard-coded. |
+| Donor badge labels | Removed from active UI | `badge` field remains in `DONORS` | Labels such as Founding Donor, Visionary Circle, and Patron are not rendered in the leaderboard or share cards right now. |
 | Floating Make a Gift CTA | Live / no data required | None | Opens the donation modal when no share or donate modal is active. |
 | Donation modal | Live / local-only data | Modal state, guest identity, and entered amount | Supports sign-in prompt, amount selection, payment method tiles, and local donation recording. |
 | Amount presets | Live / no data required | None | Supports `$25`, `$50`, `$100`, and `$250` choices. |
@@ -36,8 +37,8 @@ Last reviewed: June 5, 2026
 | Guest donation display name | Live / local-only data | `localStorage` key `crowned_guest_donor_name` | Required for the first guest gift; saved locally for later guest gifts. |
 | Local donation receipt records | Live / local-only data | `localStorage` key `crowned_donation_records` | Records donor id, display name, amount, method, and timestamp. These records do not update leaderboard totals yet. |
 | Payment method tiles | Prototype / toast-only | Local modal state | Apple Pay, Google Pay, PayPal, and card buttons record a local receipt and show a toast; no real processor is connected. |
-| Google sign-in button | Prototype / mocked data | Hard-coded donor id `tudi` | Clicking "Continue with Google" signs the user in as Tudi locally; no OAuth provider is connected. |
-| Signed-in donor highlight | Live / mocked data | Hard-coded signed-in donor id `tudi` | Highlights the matching podium card or row with a "You" badge after mocked Google sign-in. |
+| Google sign-in button | Prototype / mocked data | Hard-coded donor id `tudi` | The static demo starts signed in as Tudi; the mock Google action keeps using the same donor id and no OAuth provider is connected. |
+| Signed-in donor highlight | Live / mocked data | Hard-coded signed-in donor id `tudi` | Highlights the matching podium card or row with a "You" badge for the mocked current user. |
 | Projected rank panel | Live / mocked data | Mocked leaderboard totals plus current gift amount | Shows current rank, projected rank, projected total, and amount remaining to reach the next rank for signed-in donor Tudi. |
 | Share rank modal | Live / mocked data | Selected donor and organization name | Opens from podium or row cards and renders a share-card preview. |
 | Story and feed share-card formats | Live / mocked data | Selected donor and selected format | Supports 9:16 story and 1:1 feed previews. |
@@ -53,7 +54,7 @@ Last reviewed: June 5, 2026
 
 ## Current Data Model
 
-- The leaderboard is backed by the hard-coded `DONORS` array in `src/data/leaderboard-data.jsx`.
+- The leaderboard is backed by the hard-coded `DONORS` array in `src/data/leaderboard-data.jsx`, which includes more than 10 donors so below-top-10 current-user placement can be exercised locally.
 - There is no backend API, database, donor import, payment processor, or real authentication provider.
 - Guest identities and donation receipts persist only in the current browser through `localStorage` helpers in `src/services/donation-storage.jsx`.
 - Local donation receipts are not folded into `DONORS` in `src/data/leaderboard-data.jsx`, so completed mock gifts do not change leaderboard rank or totals.
@@ -70,7 +71,7 @@ Last reviewed: June 5, 2026
 ## Regression Coverage
 
 - `tests/pastel-luxury-redesign.test.js` covers the current website layout direction, restrained donation copy, donate modal shape, signed-in donor highlighting, guest-donation identity hooks, and projected-rank presentation.
-- `tests/rank-projection.test.js` covers rank projection thresholds.
+- `tests/rank-projection.test.js` covers rank projection thresholds and the below-top-10 current-user display window.
 - `tests/guest-donation-identity.test.js` covers guest token persistence, guest name persistence, and local donation record lookup.
 - `tests/no-ios-wrapper.test.js` confirms the obsolete iOS frame is not present.
 - `tests/favicon.test.js` confirms the Crowned SVG favicon is linked and present.

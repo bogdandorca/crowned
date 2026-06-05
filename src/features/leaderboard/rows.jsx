@@ -48,11 +48,7 @@ function LeaderRow({ donor, animate, onShare, activeDonorId }) {
           }}>{fullName(donor)}</div>
           {isActiveDonor && <RowYouBadge />}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 3 }}>
-          <span className="sans" style={{
-            fontSize: 9, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase',
-            color: 'rgba(58,50,41,0.48)',
-          }}>{donor.badge}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 4 }}>
           <DeltaChip delta={donor.delta} />
         </div>
       </div>
@@ -71,11 +67,27 @@ function LeaderRow({ donor, animate, onShare, activeDonorId }) {
   );
 }
 
-function LeaderList({ rows, animate, onShare, activeDonorId }) {
+function StandingsSeparator() {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '18px 0 14px' }}>
+      <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, rgba(96,73,45,0.16))' }} />
+      <span className="sans" style={{
+        fontSize: 9, fontWeight: 800, letterSpacing: 2.2, textTransform: 'uppercase',
+        color: 'rgba(58,50,41,0.44)', whiteSpace: 'nowrap',
+      }}>
+        More patrons
+      </span>
+      <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(96,73,45,0.16), transparent)' }} />
+    </div>
+  );
+}
+
+function LeaderList({ rows, nearbyRows = [], animate, onShare, activeDonorId }) {
   const refs = useRef({});
   const prev = useRef({});
   const lastSig = useRef(null);
-  const sig = rows.map(r => r.id).join('|');
+  const visibleRows = [...rows, ...nearbyRows];
+  const sig = visibleRows.map(r => r.id).join('|');
 
   useLayoutEffect(() => {
     const els = refs.current;
@@ -118,8 +130,14 @@ function LeaderList({ rows, animate, onShare, activeDonorId }) {
           <LeaderRow donor={d} animate={animate} onShare={onShare} activeDonorId={activeDonorId} />
         </div>
       ))}
+      {nearbyRows.length > 0 && <StandingsSeparator />}
+      {nearbyRows.map(d => (
+        <div key={d.id} ref={el => { refs.current[d.id] = el; }} style={{ position: 'relative' }}>
+          <LeaderRow donor={d} animate={animate} onShare={onShare} activeDonorId={activeDonorId} />
+        </div>
+      ))}
     </div>
   );
 }
 
-Object.assign(window, { LeaderRow, LeaderList, RowYouBadge });
+Object.assign(window, { LeaderRow, LeaderList, RowYouBadge, StandingsSeparator });

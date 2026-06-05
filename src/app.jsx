@@ -80,14 +80,16 @@ function App() {
   const [donateOpen, setDonateOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState(null);
   const [guestDonorId] = useState(() => getOrCreateGuestDonorToken());
-  const [signedInDonorId, setSignedInDonorId] = useState(null);
+  const [signedInDonorId, setSignedInDonorId] = useState('tudi');
   const toastTimer = useRef(null);
 
   const anim = !!t.animations;
-  const ranked = rankedFor(tab);
-  const top3 = ranked.slice(0, 3);
-  const rest = ranked.slice(3);
   const activeDonorId = signedInDonorId;
+  const leaderboardDisplay = leaderboardDisplayFor({ donorId: activeDonorId, tab });
+  const ranked = leaderboardDisplay.ranked;
+  const top3 = ranked.slice(0, 3);
+  const rest = leaderboardDisplay.topRows;
+  const nearbyRows = leaderboardDisplay.nearbyRows;
 
   const toast = (msg) => {
     setToastMsg(msg);
@@ -164,7 +166,7 @@ function App() {
 
           {/* list 4–10 */}
           <div style={{ position: 'relative', zIndex: 2 }}>
-            <LeaderList rows={rest} animate={anim} onShare={setShare} activeDonorId={activeDonorId} />
+            <LeaderList rows={rest} nearbyRows={nearbyRows} animate={anim} onShare={setShare} activeDonorId={activeDonorId} />
           </div>
 
           {/* footer */}

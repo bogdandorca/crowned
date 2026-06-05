@@ -39,7 +39,6 @@ function ShareCardArt({ donor, orgName, format }) {
         <div className="serif" style={{ marginTop: 22, fontSize: format === 'story' ? 30 : 26, fontWeight: 600, textAlign: 'center', lineHeight: 1.05, color: '#302b26' }}>
           {fullName(donor)}
         </div>
-        <Badge label={donor.badge} rank={donor.rank} />
         <div className="sans" style={{ marginTop: 12, fontSize: format === 'story' ? 44 : 38, fontWeight: 800, letterSpacing: 0, fontVariantNumeric: 'tabular-nums', color: '#7c5f30' }}>
           {fmtMoney(donor.amount)}
         </div>
