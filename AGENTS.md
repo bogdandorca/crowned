@@ -1,0 +1,66 @@
+# Crowned Agent Instructions
+
+## Project Shape
+
+- Crowned is a small static donor leaderboard app served by [server.js](server.js).
+- The app uses browser-loaded JSX modules under [src](src), including [src/app.jsx](src/app.jsx), [src/data/leaderboard-data.jsx](src/data/leaderboard-data.jsx), [src/services/donation-storage.jsx](src/services/donation-storage.jsx), [src/features/donation/donate.jsx](src/features/donation/donate.jsx), [src/features/leaderboard/podium.jsx](src/features/leaderboard/podium.jsx), and [src/features/leaderboard/rows.jsx](src/features/leaderboard/rows.jsx).
+- There is no build step in [package.json](package.json); `npm start` runs the local static server.
+- Keep changes narrowly scoped. This repo often has visual polish and copy changes in progress, so do not revert unrelated edits.
+
+## Development Workflow
+
+- Prefer `rg` and `rg --files` for literal file and text discovery.
+- Use CodeGraph for structural questions when the `codegraph_*` tools are available.
+- When changing frontend code, use the `frontend-ui-consistency` skill if it is available in the current session before editing UI components, styles, layout, or user-facing copy.
+- Before changing behavior, inspect the relevant component and the matching regression tests under [tests](tests).
+- Preserve the existing inline style/component style unless a task explicitly asks for a broader refactor.
+- Avoid adding a bundler, package manager change, or framework unless the user explicitly requests it.
+- Update [FEATURES.md](FEATURES.md) after every new feature, every change to an existing feature, and every feature removal.
+
+## Running And Verifying
+
+- Start the app with `npm start`; by default it listens on port `8765`.
+- Run regression tests directly with Node, for example `node tests/pastel-luxury-redesign.test.js`.
+- If a change touches multiple user-facing flows, run all test files under [tests](tests) with Node.
+- If you cannot run a verification command, say exactly what was skipped and why.
+
+## UI And Content Guidelines
+
+- Keep the product feel restrained, refined, and donor-focused.
+- Prefer quiet giving language over competitive or casino-like copy.
+- Maintain responsive layouts for both desktop and mobile; avoid text overlap and oversized controls.
+- Do not reintroduce the obsolete iOS device wrapper or decorative particle/confetti effects.
+
+<!-- CODEGRAPH_START -->
+## CodeGraph
+
+This project has a CodeGraph MCP server (`codegraph_*` tools) configured. CodeGraph is a tree-sitter-parsed knowledge graph of every symbol, edge, and file. Reads are sub-millisecond and return structural information grep cannot.
+
+### When to prefer codegraph over native search
+
+Use codegraph for **structural** questions -- what calls what, what would break, where is X defined, what is X's signature. Use native grep/read only for **literal text** queries (string contents, comments, log messages) or after you already have a specific file open.
+
+| Question | Tool |
+|---|---|
+| "Where is X defined?" / "Find symbol named X" | `codegraph_search` |
+| "What calls function Y?" | `codegraph_callers` |
+| "What does Y call?" | `codegraph_callees` |
+| "What would break if I changed Z?" | `codegraph_impact` |
+| "Show me Y's signature / source / docstring" | `codegraph_node` |
+| "Give me focused context for a task/area" | `codegraph_context` |
+| "Survey an unfamiliar module/topic" | `codegraph_explore` |
+| "What files exist under path/" | `codegraph_files` |
+| "Is the index healthy?" | `codegraph_status` |
+
+### Rules of thumb
+
+- **Trust codegraph results.** They come from a full AST parse. Do not re-verify them with grep; that is slower, less accurate, and wastes context.
+- Do not grep first when looking up a symbol by name. `codegraph_search` is faster and returns kind, location, and signature in one call.
+- Do not chain `codegraph_search` and `codegraph_node` when you just want context; `codegraph_context` is one call.
+- `codegraph_explore` is the heavy hitter for unfamiliar areas; it returns full source from all relevant files in one call, but is token-heavy. If the harness supports parallel subagents, spawn one for explore-class questions to keep main session context clean.
+- Index lag: the file watcher debounces about 500ms behind writes; do not re-query immediately after editing a file in the same turn.
+
+### If `.codegraph/` does not exist
+
+The MCP server returns "not initialized." Ask the user: "I notice this project does not have CodeGraph initialized. Want me to run `codegraph init -i` to build the index?"
+<!-- CODEGRAPH_END -->
