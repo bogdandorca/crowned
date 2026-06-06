@@ -131,13 +131,16 @@ function DonateModal({ orgName, tab = 'all', animate, guestDonorId, signedInDono
 
   const handlePay = async (label) => {
     const guestName = pendingGuestName.trim();
-    if (!signedInDonorId && !guestDisplayName && !guestName) {
-      toast('Add a name for your first guest gift');
+    if (!signedInDonorId && !guestName) {
+      toast('Add a name for your gift');
       return;
     }
 
-    const displayName = signedInDonorId ? (signedInDonorName || 'Signed donor') : saveGuestDonorName(guestDisplayName || guestName);
-    if (!signedInDonorId) setGuestDisplayName(displayName);
+    const displayName = signedInDonorId ? (signedInDonorName || 'Signed donor') : saveGuestDonorName(guestName);
+    if (!signedInDonorId) {
+      setGuestDisplayName(displayName);
+      setPendingGuestName(displayName);
+    }
     setSubmittingMethod(label);
     try {
       const checkout = await createDonationCheckout({
@@ -237,29 +240,27 @@ function DonateModal({ orgName, tab = 'all', animate, guestDonorId, signedInDono
                 <GoogleG size={20} />
                 Continue with Google
               </button>
-              {!guestDisplayName && (
-                <div style={{ marginTop: 14 }}>
-                  <div className="sans" style={{
-                    fontSize: 9.5, letterSpacing: 2.1, textTransform: 'uppercase',
-                    color: 'rgba(58,50,41,0.48)', marginBottom: 7,
-                  }}>
-                    Guest donation name
-                  </div>
-                  <input
-                    type="text"
-                    value={pendingGuestName}
-                    onChange={(e) => setPendingGuestName(e.target.value)}
-                    placeholder="Name for this gift"
-                    className="sans"
-                    style={{
-                      width: '100%', height: 48, borderRadius: 12, padding: '0 13px',
-                      background: 'rgba(255,250,241,0.76)',
-                      border: '1px solid rgba(96,73,45,0.16)', outline: 'none',
-                      color: '#302b26', fontSize: 15, fontWeight: 700,
-                    }}
-                  />
+              <div style={{ marginTop: 14 }}>
+                <div className="sans" style={{
+                  fontSize: 9.5, letterSpacing: 2.1, textTransform: 'uppercase',
+                  color: 'rgba(58,50,41,0.48)', marginBottom: 7,
+                }}>
+                  Guest donation name
                 </div>
-              )}
+                <input
+                  type="text"
+                  value={pendingGuestName}
+                  onChange={(e) => setPendingGuestName(e.target.value)}
+                  placeholder="Name for this gift"
+                  className="sans"
+                  style={{
+                    width: '100%', height: 48, borderRadius: 12, padding: '0 13px',
+                    background: 'rgba(255,250,241,0.76)',
+                    border: '1px solid rgba(96,73,45,0.16)', outline: 'none',
+                    color: '#302b26', fontSize: 15, fontWeight: 700,
+                  }}
+                />
+              </div>
             </div>
           ) : (
             signedInDonorId && <RankProjectionPanel projection={projection} />

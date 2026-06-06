@@ -1,11 +1,11 @@
 # Crowned Features
 
-Last reviewed: June 5, 2026
+Last reviewed: June 6, 2026
 
 ## Status Legend
 
-- **Live / mocked data**: Feature is visible and functional, but uses hard-coded donor data from `src/data/leaderboard-data.jsx`.
-- **Live / backend API with mocked source**: Feature reads through the server/API seam, but the API is still backed by mocked donor data rather than a database.
+- **Live / donation-backed data**: Feature is visible and functional, with public leaderboard rows created only from confirmed server donation records.
+- **Live / backend API**: Feature reads through the server/API seam.
 - **Live / provider-backed when configured**: Feature calls real provider-backed server APIs and returns explicit configuration errors until required environment variables are set.
 - **Live / local-only data**: Feature stores or reads browser-local state, usually `localStorage`, with no backend sync.
 - **Live / no data required**: Feature is present and does not need application data.
@@ -18,27 +18,28 @@ Last reviewed: June 5, 2026
 |---|---|---|---|
 | Dependency-ready Node server | Live / no data required | `server.js`, `src/server/create-server.js`, `package.json` runtime dependencies | `server.js` is now a thin dotenv-enabled entrypoint; reusable HTTP routing lives under `src/server/` and can use installed runtime packages. |
 | Static Crowned website shell | Live / no data required | None | Served by the Node server on port `8765`; browser loads React, ReactDOM, Babel, and local JSX modules from `src/` directly. The same server now exposes backend APIs. |
-| Read-only leaderboard API | Live / backend API with mocked source | `GET /api/leaderboard?period=all\|month` backed by `src/data/leaderboard-core.js` | Returns ranked donors, top standings rows, nearby current-user rows, the requested period, and active donor id. |
-| Full-width pastel donor leaderboard layout | Live / backend API with mocked source | Frontend `loadLeaderboardDisplay` service with local fallback to shared mocked donor rows | Current presentation is a refined website layout, not the obsolete iOS device wrapper; leaderboard content is centered and width-constrained on large screens. |
+| Read-only leaderboard API | Live / donation-backed data | `GET /api/leaderboard?period=all\|month` backed by confirmed donation records | Returns ranked donors, top standings rows, nearby current-user rows, the requested period, and active donor id. A fresh store returns an empty leaderboard until gifts are confirmed. |
+| Full-width pastel donor leaderboard layout | Live / donation-backed data | Frontend `loadLeaderboardDisplay` service with local fallback to the shared ranking helper | Current presentation is a refined website layout, not the obsolete iOS device wrapper; leaderboard content is centered and width-constrained on large screens. |
 | SVG favicon and browser title | Live / no data required | None | Uses the root `favicon.svg` and the Crowned donor leaderboard page title. |
-| Sticky brand header | Live / mocked data | Tweak defaults plus selected tab | Shows the organization wordmark, donor leaderboard label, season text, and refresh button. |
-| Refresh leaderboard button | Live / backend API with mocked source | Frontend leaderboard API service | Fetches the current leaderboard payload from `/api/leaderboard` and then displays a "Leaderboard refreshed" toast. The returned data is still sourced from mocked donors. |
-| All Time / This Month tab switch | Live / mocked data | `allTime` and `thisMonth` fields in `DONORS` | Re-sorts the same donor pool by the selected total and changes season copy. |
-| Rank delta indicators | Live / mocked data | Derived from the two mocked leaderboard orderings | Shows movement relative to the other tab's ranking. |
-| Leading patron hero | Live / mocked data | Top donor from `rankedFor(tab)` | Highlights the current first-place donor with name and animated amount. |
-| Top-three podium cards | Live / mocked data | Top three donors from `rankedFor(tab)` | Shows rank, initials avatar, medal ring, animated amount, share button, and optional "You" state. |
-| Full standings list | Live / mocked data | Display sections from `leaderboardDisplayFor({ donorId, tab })` | Shows positions 4-10 with initials avatar, amount, rank delta, share button, and optional "You" state. |
-| Current-user rank window | Live / mocked data | Signed-in donor id plus ranked mocked donors | When the signed-in donor ranks below the top 10, shows a subtle separator followed by five nearby places with the signed-in donor centered as the third row when possible. |
+| Sticky brand header | Live / backend API | Tweak defaults plus selected tab | Shows the organization wordmark, donor leaderboard label, season text, and refresh button. |
+| Refresh leaderboard button | Live / donation-backed data | Frontend leaderboard API service | Fetches the current leaderboard payload from `/api/leaderboard` and then displays a "Leaderboard refreshed" toast. |
+| All Time / This Month tab switch | Live / donation-backed data | Confirmed donation totals | Re-sorts confirmed donors by all-time or monthly totals and changes season copy. |
+| Rank delta indicators | Live / donation-backed data | Derived from the two donation-backed leaderboard orderings | Shows movement relative to the other tab's ranking. |
+| Leading patron hero | Live / donation-backed data | Top donor from confirmed donations | Highlights the current first-place donor with name and animated amount. |
+| Top-three podium cards | Live / donation-backed data | Top three donors from confirmed donations | Shows rank, initials avatar, medal ring, animated amount, share button, and optional "You" state. |
+| Full standings list | Live / donation-backed data | Display sections from `leaderboardDisplayFor({ donorId, tab, donations })` | Shows positions 4-10 with initials avatar, amount, rank delta, share button, and optional "You" state. |
+| Empty leaderboard state | Live / donation-backed data | Confirmed donation totals | Shows a quiet empty state on a fresh deployment until the first confirmed Stripe gift appears. |
+| Current-user rank window | Live / donation-backed data | Signed-in donor id plus ranked confirmed donors | When the signed-in donor ranks below the top 10, shows a subtle separator followed by five nearby places with the signed-in donor centered as the third row when possible. |
 | FLIP-style list reshuffle animation | Live / no data required | DOM positions and current row order | Animates row movement when the tab changes and animations are enabled. |
 | Animated donation amounts | Live / no data required | Numeric value passed to `AnimatedNumber` | Counts amounts up when values change; can be disabled through tweaks. |
-| Initials avatars and medal styling | Live / mocked data | Donor names, hue, and rank | Uses generated initials and gradient rings; no real donor photos are present. |
-| Donor badge labels | Removed from active UI | `badge` field remains in `DONORS` | Labels such as Founding Donor, Visionary Circle, and Patron are not rendered in the leaderboard or share cards right now. |
+| Initials avatars and medal styling | Live / donation-backed data | Donor names, hue, and rank | Uses generated initials and gradient rings; no real donor photos are present. |
+| Donor badge labels | Removed from active UI | Confirmed donor rows still carry an internal badge value | Labels such as Guest donor are not rendered in the leaderboard or share cards right now. |
 | Floating Make a Gift CTA | Live / no data required | None | Opens the donation modal when no share or donate modal is active. |
 | Donation modal | Live / provider-backed when configured | Modal state, guest identity, entered amount, and `POST /api/donations` | Supports sign-in prompt, amount selection, and one Stripe checkout action. Missing Stripe config is shown as a checkout configuration error. |
 | Amount presets | Live / no data required | None | Supports `$25`, `$50`, `$100`, and `$250` choices. |
 | Custom donation amount input | Live / no data required | User-entered modal state | Accepts decimal-like numeric input after stripping non-number characters. |
 | Guest donor token | Live / local-only data | `localStorage` key `crowned_guest_donor_token` | Creates a stable browser-local donor id for guest gifts. |
-| Guest donation display name | Live / local-only data | `localStorage` key `crowned_guest_donor_name` | Required for the first guest gift; saved locally for later guest gifts. |
+| Guest donation display name | Live / local-only data | `localStorage` key `crowned_guest_donor_name` | Required for guest checkout, saved locally, and editable on each signed-out gift. |
 | Local donation receipt records | Removed from active checkout flow | `localStorage` helper remains for identity regression coverage | Provider checkout now starts through the backend instead of recording local-only receipts. |
 | Stripe checkout creation | Live / provider-backed when configured | `POST /api/donations`, `stripe` package, `STRIPE_SECRET_KEY`, `APP_BASE_URL` | Creates a pending donation and Stripe Checkout Session. Missing Stripe config returns an explicit 503 error. |
 | Stripe webhook confirmation | Live / provider-backed when configured | `POST /api/stripe/webhook` and server JSON store | Confirms matching pending donations and folds confirmed gifts into leaderboard totals. |
@@ -47,13 +48,13 @@ Last reviewed: June 5, 2026
 | Google sign-in button | Live / provider-backed when configured | `GET /api/auth/google/start`, `GET /api/auth/google/callback`, `google-auth-library`, Google OAuth env vars | Starts Google OAuth and creates an HTTP-only `crowned_session` cookie on callback. Missing Google config returns an explicit 503 error. |
 | Signed-in donor highlight | Live / provider-backed when configured | `GET /api/session` and OAuth guest-linking state | Highlights the authenticated donor when a valid `crowned_session` cookie exists. Guest donations started before Google sign-in can be linked during OAuth callback. |
 | Projected rank panel | Live / provider-backed when configured | Authenticated donor id plus current leaderboard totals | Shows current rank, projected rank, projected total, and amount remaining to reach the next rank for the signed-in donor. |
-| Share rank modal | Live / mocked data | Selected donor and organization name | Opens from podium or row cards and renders a share-card preview. |
-| Story and feed share-card formats | Live / mocked data | Selected donor and selected format | Supports 9:16 story and 1:1 feed previews. |
-| Server share links | Live / backend API with mocked source | `POST /api/share-links`, `GET /api/share-links/:id` | Persists share records in the server store and returns public `/share/:id` URLs. |
-| Public share pages | Live / backend API with mocked source | `GET /share/:id` | Renders a public donor rank page with share metadata for generated share links. |
+| Share rank modal | Live / donation-backed data | Selected donor and organization name | Opens from podium or row cards and renders a share-card preview. |
+| Story and feed share-card formats | Live / donation-backed data | Selected donor and selected format | Supports 9:16 story and 1:1 feed previews. |
+| Server share links | Live / backend API | `POST /api/share-links`, `GET /api/share-links/:id` | Persists share records in the server store and returns public `/share/:id` URLs. |
+| Public share pages | Live / donation-backed data | `GET /share/:id` | Renders a public donor rank page with share metadata for generated share links. |
 | Instagram and Facebook share buttons | Live / provider-backed when configured | Share-link API plus browser share/open APIs | Facebook opens a real sharer URL. Instagram uses native share when available or copies the generated link as a fallback. |
 | Save Image action | Live / no data required | Browser SVG-to-canvas export | Generates and downloads a PNG for the selected story/feed format. |
-| Copy Link action | Live / backend API with mocked source | Share-link API plus Clipboard API fallback | Creates a real server share URL and copies it to the clipboard. |
+| Copy Link action | Live / backend API | Share-link API plus Clipboard API fallback | Creates a real server share URL and copies it to the clipboard. |
 | Toast notifications | Live / no data required | Local component state | Used for refresh, sign-in, payment, and share action feedback. |
 | Tweak defaults | Live / no data required | `TWEAK_DEFAULTS` in `src/app.jsx` | Controls organization name, serif font, gold intensity, background darkness, animation toggle, and accent color. |
 | Edit-mode tweaks panel | Live / local host integration | Host `postMessage` edit-mode protocol in `src/dev/tweaks-panel.jsx` | Opens only when the embedding host sends edit-mode messages; writes changes back through `__edit_mode_set_keys`. |
@@ -68,7 +69,7 @@ Last reviewed: June 5, 2026
 
 ## Current Data Model
 
-- The leaderboard starts from the hard-coded `DONORS` array in `src/data/leaderboard-core.js`, which includes more than 10 donors and uses small test totals from `$1` to `$100` so below-top-10 current-user placement can be exercised locally.
+- The shipped `DONORS` array in `src/data/leaderboard-core.js` is empty; public leaderboard rows are created only from confirmed server donation records.
 - The server exposes `GET /api/leaderboard?period=all|month`, and the browser reads it through `src/services/leaderboard-api.jsx` with a local fallback.
 - Server runtime state persists in PostgreSQL when `DATABASE_URL` or `POSTGRES_URL` is configured, with JSON storage as the local fallback for demo use.
 - Stripe Checkout and Google OAuth are wired behind provider adapters and require environment variables before live provider calls can succeed.
@@ -80,7 +81,7 @@ Last reviewed: June 5, 2026
 
 ## Backend Readiness
 
-- `src/data/leaderboard-core.js` is the shared mocked leaderboard provider for Node and browser use until a database-backed repository replaces it.
+- `src/data/leaderboard-core.js` owns shared ranking/display helpers for Node and browser use; it no longer ships seeded donor rows.
 - `src/services/leaderboard-api.jsx` is the browser API seam for leaderboard reads and should remain the UI entry point as the backend becomes real.
 - `src/server/store.js` chooses PostgreSQL when configured and falls back to `src/server/json-store.js` for local runtime persistence.
 - `src/server/postgres-store.js` owns PostgreSQL persistence for donations, sessions, share links, and OAuth linking state.

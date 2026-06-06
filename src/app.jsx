@@ -73,6 +73,53 @@ function Header({ orgName, onRefresh, season }) {
   );
 }
 
+function EmptyLeaderboard({ onDonate }) {
+  return (
+    <div style={{
+      marginTop: 46,
+      padding: '44px 22px',
+      textAlign: 'center',
+      borderTop: '1px solid rgba(96,73,45,0.14)',
+      borderBottom: '1px solid rgba(96,73,45,0.14)',
+      background: 'rgba(255,250,241,0.28)',
+    }}>
+      <div className="serif" style={{ fontSize: 30, fontWeight: 600, color: '#302b26', lineHeight: 1.08 }}>
+        No gifts yet
+      </div>
+      <div className="sans" style={{
+        margin: '10px auto 0',
+        maxWidth: 360,
+        fontSize: 13,
+        lineHeight: 1.5,
+        color: 'rgba(58,50,41,0.58)',
+      }}>
+        The first confirmed gift will open the standings.
+      </div>
+      <button
+        onClick={onDonate}
+        className="sans"
+        style={{
+          marginTop: 20,
+          minHeight: 44,
+          padding: '0 20px',
+          borderRadius: 100,
+          border: 'none',
+          cursor: 'pointer',
+          background: '#56634e',
+          color: '#fffaf1',
+          fontSize: 12,
+          fontWeight: 800,
+          letterSpacing: 1.4,
+          textTransform: 'uppercase',
+          boxShadow: '0 12px 28px rgba(86,99,78,0.16)',
+        }}
+      >
+        Make a Gift
+      </button>
+    </div>
+  );
+}
+
 function App() {
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
   const [tab, setTab] = useState('all');
@@ -91,6 +138,7 @@ function App() {
   const top3 = ranked.slice(0, 3);
   const rest = leaderboardDisplay.topRows;
   const nearbyRows = leaderboardDisplay.nearbyRows;
+  const hasLeaderboardRows = ranked.length > 0;
 
   const toast = (msg) => {
     setToastMsg(msg);
@@ -178,22 +226,28 @@ function App() {
           </div>
 
           <div style={contentShellStyle}>
-            {/* podium */}
-            <div style={{ position: 'relative', zIndex: 2, marginTop: 28 }}>
-              <Podium top3={top3} animate={anim} onShare={setShare} accent={t.accent} activeDonorId={activeDonorId} />
-            </div>
+            {hasLeaderboardRows ? (
+              <>
+                {/* podium */}
+                <div style={{ position: 'relative', zIndex: 2, marginTop: 28 }}>
+                  <Podium top3={top3} animate={anim} onShare={setShare} accent={t.accent} activeDonorId={activeDonorId} />
+                </div>
 
-            {/* divider */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '42px 0 16px', position: 'relative', zIndex: 2 }}>
-              <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, rgba(96,73,45,0.18))' }} />
-              <span className="sans" style={{ fontSize: 10, letterSpacing: 2.8, textTransform: 'uppercase', color: 'rgba(58,50,41,0.5)', whiteSpace: 'nowrap' }}>Full Standings</span>
-              <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(96,73,45,0.18), transparent)' }} />
-            </div>
+                {/* divider */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '42px 0 16px', position: 'relative', zIndex: 2 }}>
+                  <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, rgba(96,73,45,0.18))' }} />
+                  <span className="sans" style={{ fontSize: 10, letterSpacing: 2.8, textTransform: 'uppercase', color: 'rgba(58,50,41,0.5)', whiteSpace: 'nowrap' }}>Full Standings</span>
+                  <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(96,73,45,0.18), transparent)' }} />
+                </div>
 
-            {/* list 4–10 */}
-            <div style={{ position: 'relative', zIndex: 2 }}>
-              <LeaderList rows={rest} nearbyRows={nearbyRows} animate={anim} onShare={setShare} activeDonorId={activeDonorId} />
-            </div>
+                {/* list 4-10 */}
+                <div style={{ position: 'relative', zIndex: 2 }}>
+                  <LeaderList rows={rest} nearbyRows={nearbyRows} animate={anim} onShare={setShare} activeDonorId={activeDonorId} />
+                </div>
+              </>
+            ) : (
+              <EmptyLeaderboard onDonate={() => setDonateOpen(true)} />
+            )}
 
             {/* footer */}
             <div style={{ textAlign: 'center', padding: '14px 24px 120px', position: 'relative', zIndex: 2 }}>

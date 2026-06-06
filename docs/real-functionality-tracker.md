@@ -1,10 +1,10 @@
 # Crowned Real Functionality Tracker
 
-Last updated: June 5, 2026
+Last updated: June 6, 2026
 
 ## Purpose
 
-This document tracks the work needed to turn the current static Crowned donor leaderboard into a real product. The existing app is a polished frontend prototype: leaderboard data is mocked, donation receipts are browser-local, sign-in is simulated, refresh/share/payment actions mostly show toasts, and there is no backend API or database.
+This document tracks the work needed to turn the Crowned donor leaderboard into a real product. The app now has provider-backed payment/auth flows and server persistence, and the public leaderboard starts empty until confirmed gifts are recorded.
 
 Use this tracker as the single checklist for implementation status. Update the status column and task checkboxes whenever a feature moves forward.
 
@@ -28,12 +28,12 @@ Use this tracker as the single checklist for implementation status. Update the s
 
 | Area | Target real functionality | Current state | Status | Owner/notes |
 |---|---|---|---|---|
-| Backend API | Server endpoints for leaderboard reads, donation creation, auth session reads, and share links | Leaderboard, donations, Stripe webhook, Google auth/session, admin, health, and share-link endpoints exist | Complete | Base donor rows are still seeded from mocked leaderboard data |
+| Backend API | Server endpoints for leaderboard reads, donation creation, auth session reads, and share links | Leaderboard, donations, Stripe webhook, Google auth/session, admin, health, and share-link endpoints exist | Complete | Public leaderboard rows are created only from confirmed donations |
 | Database | Persistent donors, donation transactions, organizations, leaderboard periods, and share records | PostgreSQL persists donations, share links, sessions, and OAuth states when configured; JSON remains the local fallback | Complete | Uses `DATABASE_URL` or `POSTGRES_URL`; SQLite is not supported |
 | Authentication | Real donor sign-in and session state | Google OAuth start/callback and HTTP-only session cookie are wired | Complete | Requires `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `APP_BASE_URL` |
 | Payments | Real checkout and payment confirmation | Stripe Checkout creation and signed webhook confirmation are wired | Complete | Requires `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` for live Stripe confirmation |
 | Leaderboard totals | Completed gifts update all-time/month totals and rankings | Confirmed server donations are folded into leaderboard totals | Complete | Uses PostgreSQL in production and JSON fallback for local demo mode |
-| Refresh | Fetch fresh leaderboard data from server | Refresh button calls the frontend leaderboard API service, then shows a toast | In progress | Fetch path exists; data is still mocked server-side |
+| Refresh | Fetch fresh leaderboard data from server | Refresh button calls the frontend leaderboard API service, then shows a toast | Complete | Returned rows come from confirmed server donations |
 | Guest donations | Guest donor identity persists across devices or resolves after checkout | Guest checkout starts server-side Stripe checkout using browser-local donor token/name; Google sign-in can link matching guest donations through OAuth state | Complete | Cross-device linking depends on a donor signing in from the browser that created the guest gift |
 | Share images | Export story/feed card to PNG | Browser SVG-to-canvas export downloads PNG files | Complete | Uses generated share art matching the card data |
 | Share links | Copyable public rank/donor links | Server share-link API persists share records and returns `/share/:id` URLs | Complete | Public `/share/:id` page rendering and metadata are wired |
@@ -164,7 +164,7 @@ The first implementation plan should be **Phase 1: Backend Foundation** because 
 Suggested first vertical slice:
 
 - [x] Add a small API module while preserving the static server.
-- [x] Move mocked donors behind `GET /api/leaderboard`.
+- [x] Move leaderboard reads behind `GET /api/leaderboard`.
 - [x] Add a frontend fetch service with a mocked-data fallback for local resilience.
 - [x] Keep all current UI components unchanged except their data source.
 - [x] Run focused Node regression tests and add API-level tests.

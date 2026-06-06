@@ -64,7 +64,12 @@ function dispatch(handler, url, method = 'GET') {
   const serverModule = loadServerModule();
   assert.equal(typeof serverModule.createServer, 'function');
 
-  const server = serverModule.createServer({ root });
+  const emptyStore = {
+    async confirmedDonations() {
+      return [];
+    },
+  };
+  const server = serverModule.createServer({ root, store: emptyStore });
   const response = await dispatch(server.handler, '/api/leaderboard?period=all&donorId=tudi');
 
   assert.equal(response.status, 200);
@@ -73,10 +78,10 @@ function dispatch(handler, url, method = 'GET') {
   const payload = JSON.parse(response.body);
   assert.equal(payload.period, 'all');
   assert.equal(payload.activeDonorId, 'tudi');
-  assert.equal(payload.ranked[0].rank, 1);
-  assert.deepEqual(payload.topRows.map(d => d.rank), [4, 5, 6, 7, 8, 9, 10]);
-  assert.equal(payload.nearbyRows.length, 5);
-  assert.equal(payload.nearbyRows[2].id, 'tudi');
+  assert.deepEqual(payload.ranked, []);
+  assert.deepEqual(payload.topRows, []);
+  assert.deepEqual(payload.nearbyRows, []);
+  assert.equal(payload.shouldShowNearby, false);
 
   const badPeriod = await dispatch(server.handler, '/api/leaderboard?period=week');
   assert.equal(badPeriod.status, 400);

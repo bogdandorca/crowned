@@ -38,6 +38,13 @@ assert(
   'large-screen leaderboard content should be constrained so list names and amounts stay visually connected'
 );
 assert(
+    app.includes('function EmptyLeaderboard') &&
+    app.includes('hasLeaderboardRows') &&
+    app.includes('No gifts yet') &&
+    app.includes('The first confirmed gift will open the standings.'),
+  'fresh leaderboards should render an empty state instead of blank mocked donor rows'
+);
+assert(
   app.includes('headerBleed') &&
     app.includes('marginLeft: headerBleed') &&
     app.includes('paddingLeft: pageGutter') &&
@@ -145,9 +152,12 @@ assert(
     app.includes('guestDonorId={guestDonorId}') &&
     donate.includes('guestDisplayName') &&
     donate.includes('saveGuestDonorName') &&
+    donate.includes('saveGuestDonorName(guestName)') &&
+    donate.includes('value={pendingGuestName}') &&
+    !donate.includes('!guestDisplayName &&') &&
     donate.includes('createDonationCheckout') &&
     donate.includes('donorId: activeDonorId'),
-  'guest donors should receive a token on entry and checkout should be created by donor id with a display name'
+  'guest donors should receive a token and keep an editable checkout display name'
 );
 assert(
   providerService.includes('function startGoogleSignIn') &&

@@ -9,25 +9,7 @@
     root.CrownedLeaderboardCore = api;
   }
 })(typeof window !== 'undefined' ? window : globalThis, function createLeaderboardCore() {
-  const DONORS = [
-    { id: 'andrei',    first: 'Andrei',    last: 'Popa',       badge: 'Founding Donor',   hue: 38,  allTime: 100, thisMonth: 60 },
-    { id: 'marina',    first: 'Marina',    last: 'Ionescu',    badge: 'Visionary Circle', hue: 204, allTime: 94,  thisMonth: 48 },
-    { id: 'oliver',    first: 'Oliver',    last: 'Popa',       badge: 'Legacy Circle',    hue: 286, allTime: 88,  thisMonth: 84 },
-    { id: 'priya',     first: 'Priya',     last: 'Raghunathan',badge: 'Platinum Patron',  hue: 162, allTime: 82,  thisMonth: 72 },
-    { id: 'sebastian', first: 'Sebastian', last: 'Cole',       badge: 'Gold Benefactor',  hue: 18,  allTime: 76,  thisMonth: 24 },
-    { id: 'isabella',  first: 'Isabella',  last: 'Moreau',     badge: 'Cornerstone',      hue: 332, allTime: 70,  thisMonth: 12 },
-    { id: 'theodore',  first: 'Theodore',  last: 'Lindqvist',  badge: 'Diamond Guild',    hue: 198, allTime: 64,  thisMonth: 6  },
-    { id: 'aisha',     first: 'Aisha',     last: 'Okonkwo',    badge: 'Monthly Champion', hue: 96,  allTime: 58,  thisMonth: 100 },
-    { id: 'rafael',    first: 'Rafael',    last: 'Santos',     badge: 'Patron',           hue: 254, allTime: 52,  thisMonth: 78 },
-    { id: 'hana',      first: 'Hana',      last: 'Fujimoto',   badge: 'Rising Star',      hue: 8,   allTime: 46,  thisMonth: 90 },
-    { id: 'lena',      first: 'Lena',      last: 'Weiss',      badge: 'Patron',           hue: 124, allTime: 40,  thisMonth: 54 },
-    { id: 'samir',     first: 'Samir',     last: 'Nassar',     badge: 'Patron',           hue: 232, allTime: 34,  thisMonth: 36 },
-    { id: 'tudi',      first: 'Tudi',      last: '',           badge: 'Steward Circle',   hue: 212, allTime: 28,  thisMonth: 96 },
-    { id: 'eleanor',   first: 'Eleanor',   last: 'Hart',       badge: 'Sustaining Patron',hue: 44,  allTime: 22,  thisMonth: 30 },
-    { id: 'noah',      first: 'Noah',      last: 'Kim',        badge: 'Patron',           hue: 176, allTime: 16,  thisMonth: 66 },
-    { id: 'camille',   first: 'Camille',   last: 'Dubois',     badge: 'Supporter',        hue: 314, allTime: 10,  thisMonth: 42 },
-    { id: 'mateo',     first: 'Mateo',     last: 'Rivera',     badge: 'Supporter',        hue: 24,  allTime: 4,   thisMonth: 18 },
-  ];
+  const DONORS = [];
 
   function fullName(d) { return d.last ? d.first + ' ' + d.last : d.first; }
   function initials(d) { return ((d.first[0] || '') + (d.last[0] || d.first[1] || '')).toUpperCase(); }
