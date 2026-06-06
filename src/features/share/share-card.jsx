@@ -80,6 +80,47 @@ function ShareModal({ donor, orgName, animate, onClose, toast }) {
     { id: 'fb', label: 'Facebook', glyph: <FBGlyph />, bg: '#1877F2' },
   ];
 
+  const makeShareUrl = async () => {
+    const payload = await createShareLink({ donorId: donor.id, format, period: 'all' });
+    return payload.url;
+  };
+  const handleDownload = async () => {
+    try {
+      await downloadShareImage({ donor, orgName, format });
+      toast('Image downloaded');
+    } catch (error) {
+      toast(error.message || 'Could not export image');
+    }
+  };
+  const handleCopy = async () => {
+    try {
+      const url = await makeShareUrl();
+      await copyShareLink(url);
+      toast('Link copied');
+    } catch (error) {
+      toast(error.message || 'Could not copy link');
+    }
+  };
+  const handleSocial = async (channel) => {
+    try {
+      const url = await makeShareUrl();
+      if (channel.id === 'fb') {
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank', 'noopener,noreferrer');
+        toast('Opening Facebook');
+        return;
+      }
+      if (navigator.share) {
+        await navigator.share({ title: `${orgName} donor rank`, url });
+        toast('Share sheet opened');
+        return;
+      }
+      await copyShareLink(url);
+      toast('Instagram link copied');
+    } catch (error) {
+      toast(error.message || `Could not open ${channel.label}`);
+    }
+  };
+
   return (
     <div className={animate ? 'sheet-in' : ''} style={{
       position: 'fixed', inset: 0, zIndex: 70,
@@ -121,17 +162,17 @@ function ShareModal({ donor, orgName, animate, onClose, toast }) {
       <div style={{ padding: '8px 18px 30px', display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={{ display: 'flex', gap: 10 }}>
           {channels.map(c => (
-            <button key={c.id} className="share-channel" onClick={() => toast(`Opening ${c.label}…`)} style={{ background: c.bg }}>
+            <button key={c.id} className="share-channel" onClick={() => handleSocial(c)} style={{ background: c.bg }}>
               {c.glyph}<span>{c.label}</span>
             </button>
           ))}
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button className="share-secondary" onClick={() => toast('Saved to Photos')}>
+          <button className="share-secondary" onClick={handleDownload}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke="rgba(86,99,78,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             Save Image
           </button>
-          <button className="share-secondary" onClick={() => toast('Link copied')}>
+          <button className="share-secondary" onClick={handleCopy}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 15l6-6M10 6l1-1a4 4 0 016 6l-1 1M14 18l-1 1a4 4 0 01-6-6l1-1" stroke="rgba(86,99,78,0.9)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             Copy Link
           </button>

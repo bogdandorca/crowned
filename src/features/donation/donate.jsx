@@ -159,11 +159,12 @@ function RankProjectionPanel({ projection }) {
   );
 }
 
-function DonateModal({ orgName, tab = 'all', animate, guestDonorId, signedInDonorId, onGoogleSignIn, onClose, toast }) {
+function DonateModal({ orgName, tab = 'all', animate, guestDonorId, signedInDonorId, signedInDonorName, onClose, toast }) {
   const [amount, setAmount] = useState(50);
   const [customStr, setCustomStr] = useState('');
   const [guestDisplayName, setGuestDisplayName] = useState(() => getGuestDonorName());
   const [pendingGuestName, setPendingGuestName] = useState(() => getGuestDonorName());
+  const [submittingMethod, setSubmittingMethod] = useState(null);
   const presets = [25, 50, 100, 250];
   const isCustom = !presets.includes(amount);
   const activeDonorId = signedInDonorId || guestDonorId || getOrCreateGuestDonorToken();
@@ -182,26 +183,38 @@ function DonateModal({ orgName, tab = 'all', animate, guestDonorId, signedInDono
     if (!Number.isNaN(n) && n > 0) setAmount(n);
   };
 
-  const handlePay = (label) => {
+  const handlePay = async (label) => {
     const guestName = pendingGuestName.trim();
     if (!signedInDonorId && !guestDisplayName && !guestName) {
       toast('Add a name for your first guest gift');
       return;
     }
 
-    const displayName = signedInDonorId ? 'Tudi' : saveGuestDonorName(guestDisplayName || guestName);
+    const displayName = signedInDonorId ? (signedInDonorName || 'Signed donor') : saveGuestDonorName(guestDisplayName || guestName);
     if (!signedInDonorId) setGuestDisplayName(displayName);
-    const receipt = recordDonation({
-      donorId: activeDonorId,
-      displayName,
-      amount,
-      method: label,
-    });
-    toast(`${label} · $${receipt.amount} from ${receipt.displayName}`);
+    setSubmittingMethod(label);
+    try {
+      const checkout = await createDonationCheckout({
+        donorId: activeDonorId,
+        displayName,
+        amount,
+        method: label,
+      });
+      toast('Opening secure checkout');
+      window.location.assign(checkout.checkoutUrl);
+    } catch (error) {
+      toast(error.message || 'Checkout is not configured');
+    } finally {
+      setSubmittingMethod(null);
+    }
   };
-  const handleGoogle = () => {
-    onGoogleSignIn();
-    toast('Signed in with Google as Tudi');
+  const handleGoogle = async () => {
+    try {
+      const signIn = await startGoogleSignIn({ guestDonorId });
+      window.location.assign(signIn.redirectUrl);
+    } catch (error) {
+      toast(error.message || 'Google sign-in is not configured');
+    }
   };
 
   return (
@@ -386,6 +399,11 @@ function DonateModal({ orgName, tab = 'all', animate, guestDonorId, signedInDono
               <PaymentTile label="" glyph={<PayPalGlyph />} bg="#ffc439" dark={false} onClick={() => handlePay('PayPal')} />
               <PaymentTile label="Credit or debit card" glyph={<CardGlyph />} bg="rgba(255,250,241,0.62)" dark={false} onClick={() => handlePay('Card')} />
             </div>
+            {submittingMethod && (
+              <div className="sans" style={{ marginTop: 8, fontSize: 11, fontWeight: 700, color: 'rgba(86,99,78,0.78)' }}>
+                Preparing {submittingMethod} checkout...
+              </div>
+            )}
           </div>
 
           <div className="sans" style={{ textAlign: 'center', fontSize: 10.5, color: 'rgba(58,50,41,0.46)', lineHeight: 1.5, marginTop: 4 }}>

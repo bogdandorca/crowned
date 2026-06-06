@@ -1,17 +1,10 @@
 const assert = require('assert');
-const fs = require('fs');
 const path = require('path');
-const vm = require('vm');
 
-const dataPath = path.resolve(__dirname, '..', 'src/data/leaderboard-data.jsx');
-const dataSource = fs.readFileSync(dataPath, 'utf8');
-const context = {
-  window: {},
-  console,
-  assert,
-};
-
-vm.runInNewContext(`${dataSource}
+const {
+  projectedRankForGift,
+  leaderboardDisplayFor,
+} = require(path.resolve(__dirname, '..', 'src/data/leaderboard-core.js'));
 
 const below = projectedRankForGift({ donorId: 'marina', tab: 'all', giftAmount: 16500 });
 assert.equal(below.currentRank, 2);
@@ -39,6 +32,5 @@ assert.equal(display.nearbyRows[2].rank > 10, true);
 const topTenDisplay = leaderboardDisplayFor({ donorId: 'andrei', tab: 'all' });
 assert.equal(topTenDisplay.shouldShowNearby, false);
 assert.equal(topTenDisplay.nearbyRows.length, 0);
-`, context);
 
 console.log('rank projection regression passed');

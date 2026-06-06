@@ -80,12 +80,13 @@ function App() {
   const [donateOpen, setDonateOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState(null);
   const [guestDonorId] = useState(() => getOrCreateGuestDonorToken());
-  const [signedInDonorId, setSignedInDonorId] = useState('tudi');
+  const [signedInDonorId, setSignedInDonorId] = useState(null);
+  const [signedInDonorName, setSignedInDonorName] = useState('');
   const toastTimer = useRef(null);
 
   const anim = !!t.animations;
-  const activeDonorId = signedInDonorId;
-  const leaderboardDisplay = leaderboardDisplayFor({ donorId: activeDonorId, tab });
+  const activeDonorId = signedInDonorId || guestDonorId;
+  const [leaderboardDisplay, setLeaderboardDisplay] = useState(() => leaderboardDisplayFor({ donorId: activeDonorId, tab }));
   const ranked = leaderboardDisplay.ranked;
   const top3 = ranked.slice(0, 3);
   const rest = leaderboardDisplay.topRows;
@@ -97,7 +98,29 @@ function App() {
     toastTimer.current = setTimeout(() => setToastMsg(null), 1900);
   };
 
-  const refresh = () => { toast('Leaderboard refreshed'); };
+  const refreshLeaderboard = async () => {
+    const display = await loadLeaderboardDisplay({ donorId: activeDonorId, tab });
+    setLeaderboardDisplay(display);
+    toast('Leaderboard refreshed');
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    loadLeaderboardDisplay({ donorId: activeDonorId, tab }).then((display) => {
+      if (!cancelled) setLeaderboardDisplay(display);
+    });
+    return () => { cancelled = true; };
+  }, [activeDonorId, tab]);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadAuthSession().then((session) => {
+      if (cancelled || !session.signedIn || !session.donor) return;
+      setSignedInDonorId(session.donor.id);
+      setSignedInDonorName(session.donor.displayName || '');
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   // ---- tweak-derived style vars ----
   const goldSat = (0.38 + (t.goldIntensity / 100) * 0.55).toFixed(2);
@@ -122,6 +145,8 @@ function App() {
   };
   const pageGutter = 'clamp(24px, 6vw, 104px)';
   const headerBleed = `calc(-1 * ${pageGutter})`;
+  const contentMaxWidth = '960px';
+  const contentShellStyle = { width: '100%', maxWidth: contentMaxWidth, margin: '0 auto' };
 
   return (
     <div style={{
@@ -145,34 +170,36 @@ function App() {
             backdropFilter: 'blur(10px)',
           }}>
             <div className="site-header-inner" style={{ width: '100%', maxWidth: 1120, margin: '0 auto' }}>
-              <Header orgName={t.orgName} onRefresh={refresh} season={tab === 'month' ? 'May 2026 · Live standings' : 'Since inception - 2026'} />
+              <Header orgName={t.orgName} onRefresh={refreshLeaderboard} season={tab === 'month' ? 'May 2026 · Live standings' : 'Since inception - 2026'} />
               <div style={{ marginTop: 16 }}>
                 <TabSwitch tab={tab} onChange={setTab} />
               </div>
             </div>
           </div>
 
-          {/* podium */}
-          <div style={{ position: 'relative', zIndex: 2, marginTop: 28 }}>
-            <Podium top3={top3} animate={anim} onShare={setShare} accent={t.accent} activeDonorId={activeDonorId} />
-          </div>
+          <div style={contentShellStyle}>
+            {/* podium */}
+            <div style={{ position: 'relative', zIndex: 2, marginTop: 28 }}>
+              <Podium top3={top3} animate={anim} onShare={setShare} accent={t.accent} activeDonorId={activeDonorId} />
+            </div>
 
-          {/* divider */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '42px 0 16px', position: 'relative', zIndex: 2 }}>
-            <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, rgba(96,73,45,0.18))' }} />
-            <span className="sans" style={{ fontSize: 10, letterSpacing: 2.8, textTransform: 'uppercase', color: 'rgba(58,50,41,0.5)', whiteSpace: 'nowrap' }}>Full Standings</span>
-            <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(96,73,45,0.18), transparent)' }} />
-          </div>
+            {/* divider */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '42px 0 16px', position: 'relative', zIndex: 2 }}>
+              <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, transparent, rgba(96,73,45,0.18))' }} />
+              <span className="sans" style={{ fontSize: 10, letterSpacing: 2.8, textTransform: 'uppercase', color: 'rgba(58,50,41,0.5)', whiteSpace: 'nowrap' }}>Full Standings</span>
+              <div style={{ flex: 1, height: 1, background: 'linear-gradient(90deg, rgba(96,73,45,0.18), transparent)' }} />
+            </div>
 
-          {/* list 4–10 */}
-          <div style={{ position: 'relative', zIndex: 2 }}>
-            <LeaderList rows={rest} nearbyRows={nearbyRows} animate={anim} onShare={setShare} activeDonorId={activeDonorId} />
-          </div>
+            {/* list 4–10 */}
+            <div style={{ position: 'relative', zIndex: 2 }}>
+              <LeaderList rows={rest} nearbyRows={nearbyRows} animate={anim} onShare={setShare} activeDonorId={activeDonorId} />
+            </div>
 
-          {/* footer */}
-          <div style={{ textAlign: 'center', padding: '14px 24px 120px', position: 'relative', zIndex: 2 }}>
-            <div className="sans" style={{ fontSize: 12, color: 'rgba(58,50,41,0.48)', lineHeight: 1.6 }}>
-              Every gift writes the legacy.<br />Tap any patron to share their place.
+            {/* footer */}
+            <div style={{ textAlign: 'center', padding: '14px 24px 120px', position: 'relative', zIndex: 2 }}>
+              <div className="sans" style={{ fontSize: 12, color: 'rgba(58,50,41,0.48)', lineHeight: 1.6 }}>
+                Every gift writes the legacy.<br />Tap any patron to share their place.
+              </div>
             </div>
           </div>
       </main>
@@ -190,7 +217,7 @@ function App() {
               animate={anim}
               guestDonorId={guestDonorId}
               signedInDonorId={signedInDonorId}
-              onGoogleSignIn={() => setSignedInDonorId('tudi')}
+              signedInDonorName={signedInDonorName}
               onClose={() => setDonateOpen(false)}
               toast={toast}
             />

@@ -1,6 +1,8 @@
 node_modules/
 logs/*
 !logs/.gitkeep
+data/*
+!data/.gitkeep
 .DS_Store
 .env
 .env.local

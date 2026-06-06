@@ -9,6 +9,18 @@ const donate = fs.readFileSync(path.join(root, 'src/features/donation/donate.jsx
 const rows = fs.readFileSync(path.join(root, 'src/features/leaderboard/rows.jsx'), 'utf8');
 const share = fs.readFileSync(path.join(root, 'src/features/share/share-card.jsx'), 'utf8');
 const atoms = fs.readFileSync(path.join(root, 'src/ui/atoms.jsx'), 'utf8');
+const leaderboardServicePath = path.join(root, 'src/services/leaderboard-api.jsx');
+const leaderboardService = fs.existsSync(leaderboardServicePath)
+  ? fs.readFileSync(leaderboardServicePath, 'utf8')
+  : '';
+const providerServicePath = path.join(root, 'src/services/provider-api.jsx');
+const providerService = fs.existsSync(providerServicePath)
+  ? fs.readFileSync(providerServicePath, 'utf8')
+  : '';
+const shareActionsPath = path.join(root, 'src/services/share-actions.jsx');
+const shareActions = fs.existsSync(shareActionsPath)
+  ? fs.readFileSync(shareActionsPath, 'utf8')
+  : '';
 
 assert(
   app.includes('pastelSurface') && app.includes('blushWash') && app.includes('sageInk'),
@@ -17,6 +29,12 @@ assert(
 assert(
   !app.includes('980px') && app.includes('pageGutter') && app.includes("width: '100%'"),
   'large-screen layout should use a full-width website shell instead of a narrow centered app canvas'
+);
+assert(
+  app.includes('contentMaxWidth') &&
+    app.includes("maxWidth: contentMaxWidth") &&
+    app.includes('contentShellStyle'),
+  'large-screen leaderboard content should be constrained so list names and amounts stay visually connected'
 );
 assert(
   app.includes('headerBleed') &&
@@ -76,18 +94,19 @@ assert(
 );
 assert(
   app.includes('signedInDonorId') &&
-    app.includes("useState('tudi')") &&
-    app.includes("setSignedInDonorId('tudi')") &&
+    app.includes('loadAuthSession') &&
+    !app.includes("useState('tudi')") &&
+    !app.includes("setSignedInDonorId('tudi')") &&
     donate.includes('signedInDonorId') &&
     donate.includes('!signedInDonorId ?') &&
     donate.includes('signedInDonorId &&') &&
     donate.includes("projectedRankForGift({ donorId: signedInDonorId, tab, giftAmount: amount })"),
-  'donation modal should use mocked signed-in donor Tudi for projected rank'
+  'donation modal should use the real signed-in donor session for projected rank'
 );
 assert(
   app.includes('activeDonorId') &&
     app.includes('activeDonorId={activeDonorId}') &&
-    app.includes('onGoogleSignIn={() => setSignedInDonorId') &&
+    app.includes('setSignedInDonorId(session.donor.id)') &&
     podium.includes('isActiveDonor') &&
     podium.includes('YouBadge') &&
     rows.includes('isActiveDonor') &&
@@ -95,12 +114,15 @@ assert(
   'leaderboard should highlight the signed-in donor across podium cards and standing rows'
 );
 assert(
-  app.includes('leaderboardDisplayFor({ donorId: activeDonorId, tab })') &&
+  app.includes('loadLeaderboardDisplay({ donorId: activeDonorId, tab })') &&
+    app.includes('refreshLeaderboard') &&
+    leaderboardService.includes('function loadLeaderboardDisplay') &&
+    leaderboardService.includes('/api/leaderboard?') &&
     app.includes('nearbyRows={nearbyRows}') &&
     rows.includes('function StandingsSeparator') &&
     rows.includes('nearbyRows.length > 0') &&
     rows.includes('<StandingsSeparator />'),
-  'leaderboard should add a separated nearby row window when the signed-in donor is below the top 10'
+  'leaderboard should load through the API service and add a separated nearby row window when the signed-in donor is below the top 10'
 );
 assert(
   podium.includes('function YouBadge') &&
@@ -116,9 +138,30 @@ assert(
     app.includes('guestDonorId={guestDonorId}') &&
     donate.includes('guestDisplayName') &&
     donate.includes('saveGuestDonorName') &&
-    donate.includes('recordDonation') &&
+    donate.includes('createDonationCheckout') &&
     donate.includes('donorId: activeDonorId'),
-  'guest donors should receive a token on entry and first donations should be recorded by donor id with a display name'
+  'guest donors should receive a token on entry and checkout should be created by donor id with a display name'
+);
+assert(
+  providerService.includes('function startGoogleSignIn') &&
+    providerService.includes('/api/auth/google/start') &&
+    providerService.includes('function createDonationCheckout') &&
+    providerService.includes('/api/donations') &&
+    donate.includes('createDonationCheckout') &&
+    donate.includes('window.location.assign') &&
+    donate.includes('startGoogleSignIn({ guestDonorId })'),
+  'donation modal should use provider-backed Google sign-in and Stripe checkout APIs'
+);
+assert(
+  providerService.includes('function createShareLink') &&
+    providerService.includes('/api/share-links') &&
+    shareActions.includes('function downloadShareImage') &&
+    shareActions.includes('canvas.toBlob') &&
+    shareActions.includes('function copyShareLink') &&
+    share.includes('createShareLink') &&
+    share.includes('downloadShareImage') &&
+    share.includes('copyShareLink'),
+  'share modal should create real share links, copy them, and export image files'
 );
 assert(
   !donate.includes('You move to') &&
