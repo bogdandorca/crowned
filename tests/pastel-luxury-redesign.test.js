@@ -82,8 +82,14 @@ assert(
   'primary donate CTA should use restrained giving language'
 );
 assert(
-  donate.includes('PaymentTile label="Credit or debit card"') && !donate.includes('className="share-secondary"\n              style={{ width: \'100%\', height: 50, borderRadius: 14 }}'),
-  'credit card payment option should use the same PaymentTile sizing as the other payment buttons'
+  donate.includes('Continue to Stripe') &&
+    donate.includes("handlePay('Stripe')") &&
+    !donate.includes('function PaymentTile') &&
+    !donate.includes('ApplePayGlyph') &&
+    !donate.includes('GPayGlyph') &&
+    !donate.includes('PayPalGlyph') &&
+    !donate.includes('Credit or debit card'),
+  'donation modal should expose one Stripe checkout button instead of separate wallet/card payment tiles'
 );
 assert(
   donate.includes('donate-overlay') &&

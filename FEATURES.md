@@ -34,7 +34,7 @@ Last reviewed: June 5, 2026
 | Initials avatars and medal styling | Live / mocked data | Donor names, hue, and rank | Uses generated initials and gradient rings; no real donor photos are present. |
 | Donor badge labels | Removed from active UI | `badge` field remains in `DONORS` | Labels such as Founding Donor, Visionary Circle, and Patron are not rendered in the leaderboard or share cards right now. |
 | Floating Make a Gift CTA | Live / no data required | None | Opens the donation modal when no share or donate modal is active. |
-| Donation modal | Live / provider-backed when configured | Modal state, guest identity, entered amount, and `POST /api/donations` | Supports sign-in prompt, amount selection, and provider checkout creation. Missing Stripe config is shown as a checkout configuration error. |
+| Donation modal | Live / provider-backed when configured | Modal state, guest identity, entered amount, and `POST /api/donations` | Supports sign-in prompt, amount selection, and one Stripe checkout action. Missing Stripe config is shown as a checkout configuration error. |
 | Amount presets | Live / no data required | None | Supports `$25`, `$50`, `$100`, and `$250` choices. |
 | Custom donation amount input | Live / no data required | User-entered modal state | Accepts decimal-like numeric input after stripping non-number characters. |
 | Guest donor token | Live / local-only data | `localStorage` key `crowned_guest_donor_token` | Creates a stable browser-local donor id for guest gifts. |
@@ -43,7 +43,7 @@ Last reviewed: June 5, 2026
 | Stripe checkout creation | Live / provider-backed when configured | `POST /api/donations`, `stripe` package, `STRIPE_SECRET_KEY`, `APP_BASE_URL` | Creates a pending donation and Stripe Checkout Session. Missing Stripe config returns an explicit 503 error. |
 | Stripe webhook confirmation | Live / provider-backed when configured | `POST /api/stripe/webhook` and server JSON store | Confirms matching pending donations and folds confirmed gifts into leaderboard totals. |
 | Stripe webhook signature verification | Live / provider-backed when configured | `stripe` package and `STRIPE_WEBHOOK_SECRET` | Verifies signed Stripe webhook payloads before confirming donations when the webhook secret is configured. |
-| Payment method tiles | Live / provider-backed when configured | Stripe checkout endpoint | Apple Pay, Google Pay, PayPal, and card buttons all start the backend checkout path with their selected method label. Stripe wallet availability depends on Stripe account/payment-method configuration. |
+| Single Stripe checkout button | Live / provider-backed when configured | Stripe checkout endpoint | One "Continue to Stripe" button starts the backend checkout path; Stripe controls available payment methods inside hosted Checkout. |
 | Google sign-in button | Live / provider-backed when configured | `GET /api/auth/google/start`, `GET /api/auth/google/callback`, `google-auth-library`, Google OAuth env vars | Starts Google OAuth and creates an HTTP-only `crowned_session` cookie on callback. Missing Google config returns an explicit 503 error. |
 | Signed-in donor highlight | Live / provider-backed when configured | `GET /api/session` and OAuth guest-linking state | Highlights the authenticated donor when a valid `crowned_session` cookie exists. Guest donations started before Google sign-in can be linked during OAuth callback. |
 | Projected rank panel | Live / provider-backed when configured | Authenticated donor id plus current leaderboard totals | Shows current rank, projected rank, projected total, and amount remaining to reach the next rank for the signed-in donor. |
@@ -68,7 +68,7 @@ Last reviewed: June 5, 2026
 
 ## Current Data Model
 
-- The leaderboard starts from the hard-coded `DONORS` array in `src/data/leaderboard-core.js`, which includes more than 10 donors so below-top-10 current-user placement can be exercised locally.
+- The leaderboard starts from the hard-coded `DONORS` array in `src/data/leaderboard-core.js`, which includes more than 10 donors and uses small test totals from `$1` to `$100` so below-top-10 current-user placement can be exercised locally.
 - The server exposes `GET /api/leaderboard?period=all|month`, and the browser reads it through `src/services/leaderboard-api.jsx` with a local fallback.
 - Server runtime state persists in PostgreSQL when `DATABASE_URL` or `POSTGRES_URL` is configured, with JSON storage as the local fallback for demo use.
 - Stripe Checkout and Google OAuth are wired behind provider adapters and require environment variables before live provider calls can succeed.

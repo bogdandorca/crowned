@@ -31,28 +31,6 @@ function DonateButton({ onClick }) {
   );
 }
 
-function PaymentTile({ label, glyph, bg, onClick, dark = true }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        flex: 1, minHeight: 56, borderRadius: 14, border: dark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(96,73,45,0.14)',
-        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-        background: bg,
-        color: dark ? '#fff' : '#1a1206',
-        fontFamily: 'Archivo, sans-serif', fontSize: 14, fontWeight: 700,
-        transition: 'transform .15s ease, filter .2s ease',
-      }}
-      onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.97)')}
-      onMouseUp={(e) => (e.currentTarget.style.transform = '')}
-      onMouseLeave={(e) => (e.currentTarget.style.transform = '')}
-    >
-      {glyph}
-      <span>{label}</span>
-    </button>
-  );
-}
-
 function GoogleG({ size = 18 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24">
@@ -60,38 +38,6 @@ function GoogleG({ size = 18 }) {
       <path d="M12 22c2.7 0 4.96-.9 6.62-2.43l-3.23-2.49c-.9.6-2.05.96-3.39.96-2.61 0-4.81-1.76-5.6-4.13H3.06v2.58A10 10 0 0012 22z" fill="#34A853"/>
       <path d="M6.4 13.91A6 6 0 016.08 12c0-.66.12-1.31.32-1.91V7.51H3.06A10 10 0 002 12c0 1.61.39 3.14 1.06 4.49l3.34-2.58z" fill="#FBBC04"/>
       <path d="M12 5.96c1.47 0 2.79.5 3.83 1.5l2.86-2.86A10 10 0 0012 2 10 10 0 003.06 7.51l3.34 2.58C7.19 7.72 9.39 5.96 12 5.96z" fill="#EA4335"/>
-    </svg>
-  );
-}
-
-function ApplePayGlyph() {
-  return (
-    <svg width="42" height="18" viewBox="0 0 42 18" fill="#fff">
-      <path d="M7.6 2.7c.45-.55.75-1.3.68-2.06-.65.03-1.45.44-1.92.99-.42.48-.79 1.26-.7 1.99.74.06 1.49-.37 1.94-.92zM8.27 4.3c-1.06-.06-1.96.6-2.47.6-.51 0-1.29-.57-2.14-.55-1.1.02-2.12.64-2.69 1.63-1.15 1.99-.3 4.93.82 6.55.55.8 1.2 1.69 2.06 1.66.82-.03 1.14-.53 2.13-.53s1.28.53 2.14.51c.89-.02 1.45-.81 1.99-1.61.63-.92.89-1.81.9-1.86-.02-.01-1.73-.66-1.75-2.62-.02-1.64 1.34-2.42 1.4-2.46-.77-1.13-1.96-1.26-2.39-1.32z"/>
-      <text x="14" y="13" fontFamily="-apple-system, system-ui" fontSize="11" fontWeight="600" fill="#fff">Pay</text>
-    </svg>
-  );
-}
-
-function GPayGlyph() {
-  return (
-    <svg width="48" height="20" viewBox="0 0 48 20">
-      <text x="0" y="14" fontFamily="-apple-system, system-ui" fontSize="11" fontWeight="500" fill="#5F6368">G</text>
-      <text x="7" y="14" fontFamily="-apple-system, system-ui" fontSize="11" fontWeight="500" fill="#EA4335">o</text>
-      <text x="14" y="14" fontFamily="-apple-system, system-ui" fontSize="11" fontWeight="500" fill="#FBBC04">o</text>
-      <text x="21" y="14" fontFamily="-apple-system, system-ui" fontSize="11" fontWeight="500" fill="#4285F4">g</text>
-      <text x="28" y="14" fontFamily="-apple-system, system-ui" fontSize="11" fontWeight="500" fill="#34A853">l</text>
-      <text x="32" y="14" fontFamily="-apple-system, system-ui" fontSize="11" fontWeight="500" fill="#EA4335">e</text>
-      <text x="40" y="14" fontFamily="-apple-system, system-ui" fontSize="11" fontWeight="600" fill="#5F6368">Pay</text>
-    </svg>
-  );
-}
-
-function PayPalGlyph() {
-  return (
-    <svg width="56" height="18" viewBox="0 0 56 18">
-      <text x="0" y="14" fontFamily="-apple-system, system-ui" fontSize="13" fontWeight="700" fill="#003087" fontStyle="italic">Pay</text>
-      <text x="22" y="14" fontFamily="-apple-system, system-ui" fontSize="13" fontWeight="700" fill="#009cde" fontStyle="italic">Pal</text>
     </svg>
   );
 }
@@ -385,20 +331,26 @@ function DonateModal({ orgName, tab = 'all', animate, guestDonorId, signedInDono
 
           {/* payment options */}
           <div>
-            <div className="sans" style={{
-              fontSize: 9.5, letterSpacing: 2.4, textTransform: 'uppercase',
-              color: 'rgba(58,50,41,0.48)', marginBottom: 8,
-            }}>
-              Pay with
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <PaymentTile label="" glyph={<ApplePayGlyph />} bg="#000" onClick={() => handlePay('Apple Pay')} />
-                <PaymentTile label="" glyph={<GPayGlyph />} bg="#fff" dark={false} onClick={() => handlePay('Google Pay')} />
-              </div>
-              <PaymentTile label="" glyph={<PayPalGlyph />} bg="#ffc439" dark={false} onClick={() => handlePay('PayPal')} />
-              <PaymentTile label="Credit or debit card" glyph={<CardGlyph />} bg="rgba(255,250,241,0.62)" dark={false} onClick={() => handlePay('Card')} />
-            </div>
+            <button
+              onClick={() => handlePay('Stripe')}
+              className="sans"
+              style={{
+                width: '100%', minHeight: 56, borderRadius: 14,
+                border: '1px solid rgba(86,99,78,0.18)',
+                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                background: '#56634e',
+                color: '#fffaf1',
+                fontFamily: 'Archivo, sans-serif', fontSize: 15, fontWeight: 800,
+                transition: 'transform .15s ease, filter .2s ease',
+                boxShadow: '0 12px 28px rgba(86,99,78,0.18)',
+              }}
+              onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.98)')}
+              onMouseUp={(e) => (e.currentTarget.style.transform = '')}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = '')}
+            >
+              <CardGlyph />
+              Continue to Stripe
+            </button>
             {submittingMethod && (
               <div className="sans" style={{ marginTop: 8, fontSize: 11, fontWeight: 700, color: 'rgba(86,99,78,0.78)' }}>
                 Preparing {submittingMethod} checkout...
