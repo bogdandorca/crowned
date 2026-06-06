@@ -39,11 +39,12 @@ GOOGLE_REDIRECT_URI=http://localhost:8765/api/auth/google/callback
 
 ## PostgreSQL
 
-1. Create a PostgreSQL database with a dedicated application user.
-2. Give the application user permission to create tables and indexes in the selected database.
-3. Set `DATABASE_URL` to the connection URI. Crowned accepts `postgres://...` and `postgresql://...`.
-4. If your provider requires TLS, use the connection string format they provide. Many hosted providers include an SSL parameter in the copied URI.
-5. Start Crowned once. The server creates the required tables if they do not exist:
+1. Create a PostgreSQL role for the application.
+2. Either create the database yourself or give the application role permission to create databases.
+3. Give the application role permission to create tables and indexes in the selected database.
+4. Set `DATABASE_URL` to the connection URI. Crowned accepts `postgres://...` and `postgresql://...`.
+5. If your provider requires TLS, use the connection string format they provide. Many hosted providers include an SSL parameter in the copied URI.
+6. Start Crowned once. If the target database does not exist and the role can create databases, Crowned connects to the maintenance `postgres` database, creates the target database, reconnects, and creates the required tables:
    - `donations`
    - `share_links`
    - `sessions`

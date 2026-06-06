@@ -44,51 +44,102 @@ function normalizeSession(row) {
   };
 }
 
-function createPostgresStore({ connectionString, pool } = {}) {
-  const db = pool || new Pool({ connectionString });
+function quoteIdentifier(value) {
+  return `"${String(value).replace(/"/g, '""')}"`;
+}
+
+function databaseNameFromConnectionString(connectionString) {
+  const url = new URL(connectionString);
+  const name = decodeURIComponent((url.pathname || '').replace(/^\//, ''));
+  if (!name) throw new Error('DATABASE_URL must include a database name');
+  return name;
+}
+
+function maintenanceConnectionString(connectionString) {
+  const url = new URL(connectionString);
+  url.pathname = '/postgres';
+  return url.toString();
+}
+
+function isMissingDatabaseError(error) {
+  return error?.code === '3D000' || /database .* does not exist/i.test(error?.message || '');
+}
+
+function createPostgresStore({ connectionString, pool, poolFactory = config => new Pool(config) } = {}) {
+  let db = pool || poolFactory({ connectionString });
   let schemaReady = null;
 
-  function ensureSchema() {
+  const schemaSql = `
+    CREATE TABLE IF NOT EXISTS donations (
+      id TEXT PRIMARY KEY,
+      donor_id TEXT NOT NULL,
+      display_name TEXT NOT NULL,
+      amount NUMERIC NOT NULL,
+      method TEXT NOT NULL,
+      status TEXT NOT NULL,
+      provider TEXT NOT NULL,
+      provider_session_id TEXT,
+      note TEXT,
+      created_at TIMESTAMPTZ NOT NULL,
+      confirmed_at TIMESTAMPTZ
+    );
+    CREATE INDEX IF NOT EXISTS idx_donations_status ON donations(status);
+    CREATE INDEX IF NOT EXISTS idx_donations_provider_session ON donations(provider_session_id);
+
+    CREATE TABLE IF NOT EXISTS share_links (
+      id TEXT PRIMARY KEY,
+      donor_id TEXT NOT NULL,
+      format TEXT NOT NULL,
+      period TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS sessions (
+      id TEXT PRIMARY KEY,
+      donor_id TEXT NOT NULL,
+      display_name TEXT NOT NULL,
+      email TEXT,
+      created_at TIMESTAMPTZ NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS oauth_states (
+      state TEXT PRIMARY KEY,
+      guest_donor_id TEXT,
+      created_at TIMESTAMPTZ NOT NULL
+    );
+  `;
+
+  async function createMissingDatabase() {
+    if (pool || !connectionString) throw new Error('Target Postgres database does not exist');
+    const databaseName = databaseNameFromConnectionString(connectionString);
+    const maintenancePool = poolFactory({ connectionString: maintenanceConnectionString(connectionString) });
+    try {
+      await maintenancePool.query(`CREATE DATABASE ${quoteIdentifier(databaseName)}`);
+    } catch (error) {
+      if (error?.code !== '42P04') throw error;
+    } finally {
+      if (typeof maintenancePool.end === 'function') await maintenancePool.end();
+    }
+  }
+
+  async function initializeSchema() {
+    try {
+      await db.query(schemaSql);
+    } catch (error) {
+      if (!isMissingDatabaseError(error)) throw error;
+      await createMissingDatabase();
+      if (typeof db.end === 'function') await db.end();
+      db = poolFactory({ connectionString });
+      await db.query(schemaSql);
+    }
+  }
+
+  async function ensureSchema() {
     if (!schemaReady) {
-      schemaReady = db.query(`
-        CREATE TABLE IF NOT EXISTS donations (
-          id TEXT PRIMARY KEY,
-          donor_id TEXT NOT NULL,
-          display_name TEXT NOT NULL,
-          amount NUMERIC NOT NULL,
-          method TEXT NOT NULL,
-          status TEXT NOT NULL,
-          provider TEXT NOT NULL,
-          provider_session_id TEXT,
-          note TEXT,
-          created_at TIMESTAMPTZ NOT NULL,
-          confirmed_at TIMESTAMPTZ
-        );
-        CREATE INDEX IF NOT EXISTS idx_donations_status ON donations(status);
-        CREATE INDEX IF NOT EXISTS idx_donations_provider_session ON donations(provider_session_id);
-
-        CREATE TABLE IF NOT EXISTS share_links (
-          id TEXT PRIMARY KEY,
-          donor_id TEXT NOT NULL,
-          format TEXT NOT NULL,
-          period TEXT NOT NULL,
-          created_at TIMESTAMPTZ NOT NULL
-        );
-
-        CREATE TABLE IF NOT EXISTS sessions (
-          id TEXT PRIMARY KEY,
-          donor_id TEXT NOT NULL,
-          display_name TEXT NOT NULL,
-          email TEXT,
-          created_at TIMESTAMPTZ NOT NULL
-        );
-
-        CREATE TABLE IF NOT EXISTS oauth_states (
-          state TEXT PRIMARY KEY,
-          guest_donor_id TEXT,
-          created_at TIMESTAMPTZ NOT NULL
-        );
-      `);
+      schemaReady = initializeSchema().catch((error) => {
+        schemaReady = null;
+        throw error;
+      });
     }
     return schemaReady;
   }
