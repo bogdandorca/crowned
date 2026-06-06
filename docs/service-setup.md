@@ -163,22 +163,30 @@ Current admin APIs:
 
 After setting the service values:
 
-1. Restart the server:
+1. Check that local service values are set:
+
+```bash
+npm run check:services
+```
+
+The checker prints only `SET`, `MISSING`, `PLACEHOLDER`, or redirect URI match status. It does not print secret values.
+
+2. Restart the server:
 
 ```bash
 npm start
 ```
 
-2. Check health:
+3. Check health:
 
 ```bash
 curl -i "$APP_BASE_URL/healthz"
 ```
 
-3. Start Google sign-in from the app and confirm it redirects to Google.
-4. Create a test Stripe donation and confirm Stripe redirects to Checkout.
-5. Confirm the webhook is received and the donor total changes after payment succeeds.
-6. Check server logs for request ids and provider errors.
+4. Start Google sign-in from the app and confirm it redirects to Google.
+5. Create a test Stripe donation and confirm Stripe redirects to Checkout.
+6. Confirm the webhook is received and the donor total changes after payment succeeds.
+7. Check server logs for request ids and provider errors.
 
 ## Reference Docs
 

@@ -4,6 +4,7 @@ const path = require('path');
 
 const root = path.resolve(__dirname, '..');
 const app = fs.readFileSync(path.join(root, 'src/app.jsx'), 'utf8');
+const index = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const podium = fs.readFileSync(path.join(root, 'src/features/leaderboard/podium.jsx'), 'utf8');
 const donate = fs.readFileSync(path.join(root, 'src/features/donation/donate.jsx'), 'utf8');
 const rows = fs.readFileSync(path.join(root, 'src/features/leaderboard/rows.jsx'), 'utf8');
@@ -151,6 +152,20 @@ assert(
     donate.includes('window.location.assign') &&
     donate.includes('startGoogleSignIn({ guestDonorId })'),
   'donation modal should use provider-backed Google sign-in and Stripe checkout APIs'
+);
+assert(
+  !app.includes('Signed in with Google as Tudi') &&
+    !donate.includes('Signed in with Google as Tudi') &&
+    !providerService.includes('Signed in with Google as Tudi') &&
+    !app.includes("setSignedInDonorId('tudi')") &&
+    !app.includes("toast(`Signed in with Google as"),
+  'Google sign-in should not use the obsolete mocked Tudi toast path'
+);
+assert(
+  index.includes('src/app.jsx?v=') &&
+    index.includes('src/features/donation/donate.jsx?v=') &&
+    index.includes('src/services/provider-api.jsx?v='),
+  'local browser-loaded modules should be cache-busted so stale mocked auth code is not reused'
 );
 assert(
   providerService.includes('function createShareLink') &&

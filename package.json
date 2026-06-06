@@ -6,6 +6,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "check:services": "node scripts/check-service-config.js",
     "test": "node tests/dependency-ready-server.test.js && node tests/live-readiness.test.js && node tests/pastel-luxury-redesign.test.js && node tests/rank-projection.test.js && node tests/leaderboard-api.test.js && node tests/provider-backed-flows.test.js && node tests/guest-donation-identity.test.js && node tests/favicon.test.js && node tests/no-ios-wrapper.test.js",
     "pm2:start": "pm2 start ecosystem.config.js",
     "pm2:stop": "pm2 stop ecosystem.config.js",

@@ -40,6 +40,11 @@ assert(
     fs.existsSync(path.join(root, 'docs/deployment.md')),
   'deployment env template, Dockerfile, and docs should exist'
 );
+assert(
+  fs.existsSync(path.join(root, 'scripts/check-service-config.js')) &&
+    packageJson.scripts['check:services'],
+  'service configuration checker should be available for validating local credentials'
+);
 
 assert(
   serverSource.includes("if (require.main === module)") &&
