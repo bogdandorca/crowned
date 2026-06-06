@@ -73,6 +73,14 @@ function Header({ orgName, onRefresh, season }) {
   );
 }
 
+function clearCheckoutParams() {
+  const url = new URL(window.location.href);
+  url.searchParams.delete('checkout');
+  url.searchParams.delete('donation');
+  const next = `${url.pathname}${url.search}${url.hash}`;
+  window.history.replaceState({}, '', next || '/');
+}
+
 function EmptyLeaderboard({ onDonate }) {
   return (
     <div style={{
@@ -169,6 +177,42 @@ function App() {
     }).catch(() => {});
     return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const checkoutStatus = params.get('checkout');
+    const donationId = params.get('donation');
+    if (!checkoutStatus) return undefined;
+
+    if (checkoutStatus === 'cancelled') {
+      toast('Checkout cancelled');
+      clearCheckoutParams();
+      return undefined;
+    }
+    if (checkoutStatus === 'success' && donationId) {
+      let cancelled = false;
+      syncDonationCheckout({ donationId }).then(async () => {
+        if (cancelled) return;
+        const display = await loadLeaderboardDisplay({ donorId: activeDonorId, tab });
+        if (cancelled) return;
+        setLeaderboardDisplay(display);
+        toast('Gift confirmed');
+        clearCheckoutParams();
+      }).catch((error) => {
+        if (cancelled) return;
+        toast(error.message || 'Gift is still pending');
+        clearCheckoutParams();
+      });
+      return () => { cancelled = true; };
+    }
+
+    if (!donationId) {
+      clearCheckoutParams();
+      return undefined;
+    }
+    clearCheckoutParams();
+    return undefined;
+  }, [activeDonorId, tab]);
 
   // ---- tweak-derived style vars ----
   const goldSat = (0.38 + (t.goldIntensity / 100) * 0.55).toFixed(2);

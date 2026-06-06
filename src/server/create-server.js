@@ -67,6 +67,28 @@ async function serveDonationApi(req, res, { store, stripe }) {
   }
 }
 
+async function serveDonationSyncApi(req, res, { store, stripe }) {
+  const urlPath = decodeURIComponent((req.url || '/').split('?')[0]);
+  const donationId = urlPath.split('/').slice(-2)[0];
+  const donation = await store.donationById(donationId);
+  if (!donation) return sendJson(res, 404, { error: 'Donation not found' });
+  if (donation.status === 'confirmed') return sendJson(res, 200, { donation });
+  if (!donation.providerSessionId) {
+    return sendJson(res, 409, { error: 'Donation is still waiting for Stripe checkout' });
+  }
+
+  const lookup = await stripe.retrieveCheckoutSession({ sessionId: donation.providerSessionId });
+  if (!lookup.ok) return sendJson(res, lookup.status || 502, { error: lookup.error });
+  const session = lookup.session || {};
+  const isPaid = session.payment_status === 'paid' || session.status === 'complete';
+  if (!isPaid) {
+    return sendJson(res, 409, { error: 'Stripe checkout is not paid yet' });
+  }
+
+  const confirmed = await store.confirmStripeSession(donation.providerSessionId);
+  return sendJson(res, 200, { donation: confirmed || donation });
+}
+
 function serveGoogleStart(_req, res, { google }) {
   const start = google.startUrl();
   if (!start.ok) return sendJson(res, start.status || 503, { error: start.error });
@@ -345,6 +367,9 @@ function createServer({ root = DEFAULT_ROOT, store: injectedStore, storePath, en
       if (req.method === 'POST' && urlPath === '/api/donations') {
         return serveDonationApi(req, res, { store, stripe });
       }
+      if (req.method === 'POST' && urlPath.startsWith('/api/donations/') && urlPath.endsWith('/sync')) {
+        return serveDonationSyncApi(req, res, { store, stripe });
+      }
       if (req.method === 'POST' && urlPath === '/api/stripe/webhook') {
         return serveStripeWebhook(req, res, { store, stripe, env });
       }
@@ -420,6 +445,7 @@ module.exports = {
   serveStatic,
   serveLeaderboardApi,
   serveDonationApi,
+  serveDonationSyncApi,
   serveGoogleStart,
   serveGoogleCallback,
   serveSessionApi,

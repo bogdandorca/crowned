@@ -165,6 +165,18 @@ function createFailingSessionStore() {
       GOOGLE_CLIENT_SECRET: 'google-secret',
     },
     fetchImpl: async (url) => {
+      if (String(url).includes('stripe.com/v1/checkout/sessions/cs_test_123')) {
+        return {
+          ok: true,
+          async json() {
+            return {
+              id: 'cs_test_123',
+              payment_status: 'paid',
+              status: 'complete',
+            };
+          },
+        };
+      }
       if (String(url).includes('stripe.com')) {
         return {
           ok: true,
@@ -208,7 +220,24 @@ function createFailingSessionStore() {
   });
 
   assert.equal(checkout.status, 201);
-  assert.equal(JSON.parse(checkout.body).checkoutUrl, 'https://checkout.stripe.com/c/pay/cs_test_123');
+  const checkoutPayload = JSON.parse(checkout.body);
+  assert.equal(checkoutPayload.checkoutUrl, 'https://checkout.stripe.com/c/pay/cs_test_123');
+
+  const checkoutReturn = await dispatch(configuredServer, {
+    method: 'POST',
+    url: `/api/donations/${checkoutPayload.donation.id}/sync`,
+  });
+
+  assert.equal(checkoutReturn.status, 200);
+  assert.equal(JSON.parse(checkoutReturn.body).donation.status, 'confirmed');
+
+  const returnLeaderboard = await dispatch(configuredServer, {
+    method: 'GET',
+    url: '/api/leaderboard?period=all&donorId=guest_test',
+  });
+  const returnPayload = JSON.parse(returnLeaderboard.body);
+  const returnedGuestRow = returnPayload.ranked.find(donor => donor.id === 'guest_test');
+  assert.equal(returnedGuestRow.amount, 75);
 
   const webhook = await dispatch(configuredServer, {
     method: 'POST',

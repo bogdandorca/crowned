@@ -164,10 +164,19 @@ assert(
     providerService.includes('/api/auth/google/start') &&
     providerService.includes('function createDonationCheckout') &&
     providerService.includes('/api/donations') &&
+    providerService.includes('function syncDonationCheckout') &&
+    providerService.includes('/sync') &&
     donate.includes('createDonationCheckout') &&
     donate.includes('window.location.assign') &&
     donate.includes('startGoogleSignIn({ guestDonorId })'),
   'donation modal should use provider-backed Google sign-in and Stripe checkout APIs'
+);
+assert(
+  app.includes('syncDonationCheckout') &&
+    app.includes("checkoutStatus === 'success'") &&
+    app.includes('window.history.replaceState') &&
+    app.includes('Gift confirmed'),
+  'app should reconcile successful Stripe returns and clear checkout query params'
 );
 assert(
   !app.includes('Signed in with Google as Tudi') &&

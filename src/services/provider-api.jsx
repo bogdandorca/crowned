@@ -36,6 +36,16 @@ async function createDonationCheckout({ donorId, displayName, amount, method, fe
   return parseApiResponse(response);
 }
 
+async function syncDonationCheckout({ donationId, fetchImpl = window.fetch }) {
+  const response = await fetchImpl(`/api/donations/${encodeURIComponent(donationId)}/sync`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+    },
+  });
+  return parseApiResponse(response);
+}
+
 async function createShareLink({ donorId, format, period = 'all', fetchImpl = window.fetch }) {
   const response = await fetchImpl('/api/share-links', {
     method: 'POST',
@@ -52,5 +62,6 @@ Object.assign(window, {
   loadAuthSession,
   startGoogleSignIn,
   createDonationCheckout,
+  syncDonationCheckout,
   createShareLink,
 });

@@ -23,6 +23,8 @@ See `docs/service-setup.md` for step-by-step PostgreSQL, Stripe, and Google setu
 4. Subscribe to `checkout.session.completed`.
 5. Set `STRIPE_WEBHOOK_SECRET` from the webhook endpoint details.
 
+Successful Checkout redirects are reconciled by `POST /api/donations/:id/sync`, which verifies the stored Checkout Session with Stripe before confirming the donation. Keep webhooks configured as the production backstop for delayed or async payment events.
+
 ## Google OAuth Setup
 
 1. Create a Google OAuth web application client.

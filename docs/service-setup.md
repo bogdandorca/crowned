@@ -80,9 +80,11 @@ Crowned creates Checkout Sessions from `POST /api/donations` with:
 
 Use Stripe test cards while in test mode. A common successful test card is `4242 4242 4242 4242` with any future expiry date and any CVC.
 
+When Stripe redirects a donor back to `/?checkout=success&donation=...`, the browser calls `POST /api/donations/:id/sync`. The server looks up the stored Stripe Checkout Session and confirms the donation only if Stripe reports the session as paid or complete.
+
 ## Stripe Webhooks
 
-Stripe Checkout redirects are not enough to trust a payment. Crowned confirms donations only after `checkout.session.completed` is received by `POST /api/stripe/webhook`.
+Stripe Checkout redirects are not enough by themselves to trust a payment. Crowned verifies successful returns with Stripe, and the webhook remains the production backstop for delayed, async, or abandoned-browser payment events.
 
 Production setup:
 
@@ -189,8 +191,9 @@ curl -i "$APP_BASE_URL/healthz"
 
 4. Start Google sign-in from the app and confirm it redirects to Google.
 5. Create a test Stripe donation and confirm Stripe redirects to Checkout.
-6. Confirm the webhook is received and the donor total changes after payment succeeds.
-7. Check server logs for request ids and provider errors.
+6. After successful payment, confirm the donor total changes when Stripe redirects back to the app.
+7. Confirm the webhook is also received for the same payment.
+8. Check server logs for request ids and provider errors.
 
 ## Reference Docs
 

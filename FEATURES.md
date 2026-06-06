@@ -28,7 +28,7 @@ Last reviewed: June 6, 2026
 | Leading patron hero | Live / donation-backed data | Top donor from confirmed donations | Highlights the current first-place donor with name and animated amount. |
 | Top-three podium cards | Live / donation-backed data | Top three donors from confirmed donations | Shows rank, initials avatar, medal ring, animated amount, share button, and optional "You" state. |
 | Full standings list | Live / donation-backed data | Display sections from `leaderboardDisplayFor({ donorId, tab, donations })` | Shows positions 4-10 with initials avatar, amount, rank delta, share button, and optional "You" state. |
-| Empty leaderboard state | Live / donation-backed data | Confirmed donation totals | Shows a quiet empty state on a fresh deployment until the first confirmed Stripe gift appears. |
+| Empty leaderboard state | Live / donation-backed data | Confirmed donation totals | Shows a quiet empty state on a fresh deployment until the first confirmed gift appears. |
 | Current-user rank window | Live / donation-backed data | Signed-in donor id plus ranked confirmed donors | When the signed-in donor ranks below the top 10, shows a subtle separator followed by five nearby places with the signed-in donor centered as the third row when possible. |
 | FLIP-style list reshuffle animation | Live / no data required | DOM positions and current row order | Animates row movement when the tab changes and animations are enabled. |
 | Animated donation amounts | Live / no data required | Numeric value passed to `AnimatedNumber` | Counts amounts up when values change; can be disabled through tweaks. |
@@ -42,7 +42,8 @@ Last reviewed: June 6, 2026
 | Guest donation display name | Live / local-only data | `localStorage` key `crowned_guest_donor_name` | Required for guest checkout, saved locally, and editable on each signed-out gift. |
 | Local donation receipt records | Removed from active checkout flow | `localStorage` helper remains for identity regression coverage | Provider checkout now starts through the backend instead of recording local-only receipts. |
 | Stripe checkout creation | Live / provider-backed when configured | `POST /api/donations`, `stripe` package, `STRIPE_SECRET_KEY`, `APP_BASE_URL` | Creates a pending donation and Stripe Checkout Session. Missing Stripe config returns an explicit 503 error. |
-| Stripe webhook confirmation | Live / provider-backed when configured | `POST /api/stripe/webhook` and server JSON store | Confirms matching pending donations and folds confirmed gifts into leaderboard totals. |
+| Stripe checkout return sync | Live / provider-backed when configured | `POST /api/donations/:id/sync` and Stripe Checkout Session lookup | After Stripe redirects back with `checkout=success`, verifies the stored session with Stripe, confirms paid donations, refreshes the leaderboard, and clears checkout URL params. |
+| Stripe webhook confirmation | Live / provider-backed when configured | `POST /api/stripe/webhook` and server store | Confirms matching pending donations from Stripe webhook events and folds confirmed gifts into leaderboard totals. |
 | Stripe webhook signature verification | Live / provider-backed when configured | `stripe` package and `STRIPE_WEBHOOK_SECRET` | Verifies signed Stripe webhook payloads before confirming donations when the webhook secret is configured. |
 | Single Stripe checkout button | Live / provider-backed when configured | Stripe checkout endpoint | One "Continue to Stripe" button starts the backend checkout path; Stripe controls available payment methods inside hosted Checkout. |
 | Google sign-in button | Live / provider-backed when configured | `GET /api/auth/google/start`, `GET /api/auth/google/callback`, `google-auth-library`, Google OAuth env vars | Starts Google OAuth and creates an HTTP-only `crowned_session` cookie on callback. Missing Google config returns an explicit 503 error. |
@@ -72,7 +73,7 @@ Last reviewed: June 6, 2026
 - The shipped `DONORS` array in `src/data/leaderboard-core.js` is empty; public leaderboard rows are created only from confirmed server donation records.
 - The server exposes `GET /api/leaderboard?period=all|month`, and the browser reads it through `src/services/leaderboard-api.jsx` with a local fallback.
 - Server runtime state persists in PostgreSQL when `DATABASE_URL` or `POSTGRES_URL` is configured, with JSON storage as the local fallback for demo use.
-- Stripe Checkout and Google OAuth are wired behind provider adapters and require environment variables before live provider calls can succeed.
+- Stripe Checkout, Stripe return reconciliation, Stripe webhooks, and Google OAuth are wired behind provider adapters and require environment variables before live provider calls can succeed.
 - Runtime dependencies are installed through `package.json`, including `stripe`, `google-auth-library`, `dotenv`, `cookie`, and `pg`.
 - Admin APIs support manual confirmed donations and CSV export; a polished donor management interface is still future work.
 - Guest identities and donation receipts persist only in the current browser through `localStorage` helpers in `src/services/donation-storage.jsx`.
@@ -85,12 +86,12 @@ Last reviewed: June 6, 2026
 - `src/services/leaderboard-api.jsx` is the browser API seam for leaderboard reads and should remain the UI entry point as the backend becomes real.
 - `src/server/store.js` chooses PostgreSQL when configured and falls back to `src/server/json-store.js` for local runtime persistence.
 - `src/server/postgres-store.js` owns PostgreSQL persistence for donations, sessions, share links, and OAuth linking state.
-- `src/server/stripe-provider.js` owns Stripe Checkout Session creation.
+- `src/server/stripe-provider.js` owns Stripe Checkout Session creation and session lookup for checkout-return reconciliation.
 - `src/server/google-auth-provider.js` owns Google OAuth start/callback provider logic.
 - `src/server/create-server.js` owns server routing and can be imported directly by tests or future tooling.
 - `src/server/http-utils.js` owns shared response, body parsing, MIME, and cookie helpers.
 - `src/server/logger.js` owns structured request logging.
-- `src/services/provider-api.jsx` is the browser seam for auth, donation checkout, and share-link calls.
+- `src/services/provider-api.jsx` is the browser seam for auth, donation checkout, Stripe return sync, and share-link calls.
 - `src/services/share-actions.jsx` owns share image export and clipboard behavior.
 - `.env.example`, `Dockerfile`, and `docs/deployment.md` describe the production runtime configuration.
 
@@ -98,7 +99,7 @@ Last reviewed: June 6, 2026
 
 - `tests/pastel-luxury-redesign.test.js` covers the current website layout direction, restrained donation copy, donate modal shape, signed-in donor highlighting, guest-donation identity hooks, and projected-rank presentation.
 - `tests/leaderboard-api.test.js` covers the read-only leaderboard API payload, period validation, and current-user nearby row window.
-- `tests/provider-backed-flows.test.js` covers missing provider configuration errors, Stripe checkout creation, webhook confirmation, leaderboard total updates, share-link persistence, and Google OAuth callback session creation.
+- `tests/provider-backed-flows.test.js` covers missing provider configuration errors, Stripe checkout creation, checkout-return reconciliation, webhook confirmation, leaderboard total updates, share-link persistence, and Google OAuth callback session creation.
 - `tests/dependency-ready-server.test.js` covers the dependency-ready server structure and runtime dependency declarations.
 - `tests/live-readiness.test.js` covers signed Stripe webhooks, admin donation/export APIs, public share pages, health checks, request ids, and Postgres deployment configuration.
 - `tests/rank-projection.test.js` covers rank projection thresholds and the below-top-10 current-user display window.

@@ -31,7 +31,7 @@ Use this tracker as the single checklist for implementation status. Update the s
 | Backend API | Server endpoints for leaderboard reads, donation creation, auth session reads, and share links | Leaderboard, donations, Stripe webhook, Google auth/session, admin, health, and share-link endpoints exist | Complete | Public leaderboard rows are created only from confirmed donations |
 | Database | Persistent donors, donation transactions, organizations, leaderboard periods, and share records | PostgreSQL persists donations, share links, sessions, and OAuth states when configured; JSON remains the local fallback | Complete | Uses `DATABASE_URL` or `POSTGRES_URL`; SQLite is not supported |
 | Authentication | Real donor sign-in and session state | Google OAuth start/callback and HTTP-only session cookie are wired | Complete | Requires `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `APP_BASE_URL` |
-| Payments | Real checkout and payment confirmation | Stripe Checkout creation and signed webhook confirmation are wired | Complete | Requires `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` for live Stripe confirmation |
+| Payments | Real checkout and payment confirmation | Stripe Checkout creation, checkout-return reconciliation, and signed webhook confirmation are wired | Complete | Requires `STRIPE_SECRET_KEY`; `STRIPE_WEBHOOK_SECRET` is required for signed webhook verification |
 | Leaderboard totals | Completed gifts update all-time/month totals and rankings | Confirmed server donations are folded into leaderboard totals | Complete | Uses PostgreSQL in production and JSON fallback for local demo mode |
 | Refresh | Fetch fresh leaderboard data from server | Refresh button calls the frontend leaderboard API service, then shows a toast | Complete | Returned rows come from confirmed server donations |
 | Guest donations | Guest donor identity persists across devices or resolves after checkout | Guest checkout starts server-side Stripe checkout using browser-local donor token/name; Google sign-in can link matching guest donations through OAuth state | Complete | Cross-device linking depends on a donor signing in from the browser that created the guest gift |
@@ -70,6 +70,7 @@ Goal: make a completed gift create a durable donation record and update the lead
 - [x] Pick payment provider and checkout style.
 - [x] Add server-side checkout/session creation endpoint.
 - [x] Add webhook endpoint for confirmed payments.
+- [x] Add successful Checkout return reconciliation.
 - [x] Persist confirmed donation records only from trusted server/payment events.
 - [x] Update donation modal to call the checkout endpoint.
 - [x] Show processing, success, failure, and retry states.

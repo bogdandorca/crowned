@@ -197,6 +197,12 @@ function createPostgresStore({ connectionString, pool, poolFactory = config => n
     return normalizeDonation(result.rows[0]);
   }
 
+  async function donationById(id) {
+    await ensureSchema();
+    const result = await db.query('SELECT * FROM donations WHERE id = $1', [id]);
+    return normalizeDonation(result.rows[0]);
+  }
+
   async function confirmedDonations() {
     await ensureSchema();
     const result = await db.query("SELECT * FROM donations WHERE status = 'confirmed' ORDER BY created_at ASC");
@@ -286,6 +292,7 @@ function createPostgresStore({ connectionString, pool, poolFactory = config => n
     createManualDonation,
     attachStripeSession,
     confirmStripeSession,
+    donationById,
     confirmedDonations,
     allDonations,
     createShareLink,

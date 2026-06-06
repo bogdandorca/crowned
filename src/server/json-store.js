@@ -87,6 +87,10 @@ function createJsonStore({ filePath = path.join(process.cwd(), 'data/crowned-sto
     return donation;
   }
 
+  function donationById(id) {
+    return read().donations.find(donation => donation.id === id) || null;
+  }
+
   function confirmedDonations() {
     return read().donations.filter(donation => donation.status === 'confirmed');
   }
@@ -167,6 +171,7 @@ function createJsonStore({ filePath = path.join(process.cwd(), 'data/crowned-sto
     createManualDonation,
     attachStripeSession,
     confirmStripeSession,
+    donationById,
     confirmedDonations,
     allDonations,
     createShareLink,
