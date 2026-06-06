@@ -85,6 +85,43 @@ function createFailingSessionStore() {
   assert.equal(missingGoogle.status, 503);
   assert.match(JSON.parse(missingGoogle.body).error, /GOOGLE_CLIENT_ID/);
 
+  const placeholderGoogleServer = createServer({
+    root: path.resolve(__dirname, '..'),
+    storePath: path.join(tmp, 'placeholder-google-store.json'),
+    env: {
+      APP_BASE_URL: 'http://localhost:8765',
+      GOOGLE_CLIENT_ID: 'google-client-id.apps.googleusercontent.com',
+      GOOGLE_CLIENT_SECRET: 'google-client-secret',
+    },
+  });
+  const placeholderGoogle = await dispatch(placeholderGoogleServer, {
+    method: 'GET',
+    url: '/api/auth/google/start',
+  });
+  assert.equal(placeholderGoogle.status, 503);
+  assert.match(JSON.parse(placeholderGoogle.body).error, /GOOGLE_CLIENT_ID/);
+
+  const placeholderStripeServer = createServer({
+    root: path.resolve(__dirname, '..'),
+    storePath: path.join(tmp, 'placeholder-stripe-store.json'),
+    env: {
+      APP_BASE_URL: 'http://localhost:8765',
+      STRIPE_SECRET_KEY: 'sk_live_or_test_key',
+    },
+  });
+  const placeholderStripe = await dispatch(placeholderStripeServer, {
+    method: 'POST',
+    url: '/api/donations',
+    body: {
+      donorId: 'guest_test',
+      displayName: 'Ada Lovelace',
+      amount: 75,
+      method: 'Card',
+    },
+  });
+  assert.equal(placeholderStripe.status, 503);
+  assert.match(JSON.parse(placeholderStripe.body).error, /STRIPE_SECRET_KEY/);
+
   const invalidShare = await dispatch(server, {
     method: 'POST',
     url: '/api/share-links',

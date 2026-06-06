@@ -4,6 +4,14 @@ function required(name, env) {
   return String(env[name] || '').trim();
 }
 
+function isPlaceholder(name, value) {
+  const placeholders = {
+    GOOGLE_CLIENT_ID: 'google-client-id.apps.googleusercontent.com',
+    GOOGLE_CLIENT_SECRET: 'google-client-secret',
+  };
+  return value === placeholders[name];
+}
+
 function createGoogleAuthProvider({ env = process.env, fetchImpl = null, googleOAuthClient = null } = {}) {
   const clientId = required('GOOGLE_CLIENT_ID', env);
   const clientSecret = required('GOOGLE_CLIENT_SECRET', env);
@@ -11,8 +19,12 @@ function createGoogleAuthProvider({ env = process.env, fetchImpl = null, googleO
   const redirectUri = required('GOOGLE_REDIRECT_URI', env) || `${appBaseUrl}/api/auth/google/callback`;
 
   function missingConfig() {
-    if (!clientId) return { ok: false, status: 503, error: 'Missing GOOGLE_CLIENT_ID for Google sign-in' };
-    if (!clientSecret) return { ok: false, status: 503, error: 'Missing GOOGLE_CLIENT_SECRET for Google sign-in' };
+    if (!clientId || isPlaceholder('GOOGLE_CLIENT_ID', clientId)) {
+      return { ok: false, status: 503, error: 'Missing GOOGLE_CLIENT_ID for Google sign-in' };
+    }
+    if (!clientSecret || isPlaceholder('GOOGLE_CLIENT_SECRET', clientSecret)) {
+      return { ok: false, status: 503, error: 'Missing GOOGLE_CLIENT_SECRET for Google sign-in' };
+    }
     return null;
   }
 

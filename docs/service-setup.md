@@ -18,7 +18,8 @@ PORT=8765
 HOST=0.0.0.0
 APP_BASE_URL=https://your-domain.example
 
-DATABASE_URL=postgres://user:password@host:5432/crowned
+# Leave unset for local JSON fallback. Set for production Postgres.
+# DATABASE_URL=postgres://user:password@host:5432/crowned
 ADMIN_TOKEN=replace-with-a-long-random-token
 
 STRIPE_SECRET_KEY=sk_live_or_test_key
@@ -55,6 +56,8 @@ psql "$DATABASE_URL" -c "select 1;"
 ```
 
 If `DATABASE_URL` is omitted, Crowned uses the JSON store under `data/` for local demo mode only. Do not use the JSON fallback for production traffic.
+
+For local Google sign-in testing without Postgres, leave `DATABASE_URL` unset so the OAuth state and session are saved to the local JSON fallback.
 
 ## Stripe Checkout
 

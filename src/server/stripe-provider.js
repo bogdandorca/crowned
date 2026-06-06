@@ -2,12 +2,19 @@ function required(name, env) {
   return String(env[name] || '').trim();
 }
 
+function isPlaceholder(name, value) {
+  const placeholders = {
+    STRIPE_SECRET_KEY: 'sk_live_or_test_key',
+  };
+  return value === placeholders[name];
+}
+
 function createStripeProvider({ env = process.env, fetchImpl = null, stripeClient = null } = {}) {
   const secretKey = required('STRIPE_SECRET_KEY', env);
   const appBaseUrl = required('APP_BASE_URL', env) || 'http://localhost:8765';
 
   function missingConfig() {
-    if (!secretKey) {
+    if (!secretKey || isPlaceholder('STRIPE_SECRET_KEY', secretKey)) {
       return { ok: false, status: 503, error: 'Missing STRIPE_SECRET_KEY for Stripe Checkout' };
     }
     return null;

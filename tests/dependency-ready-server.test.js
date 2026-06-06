@@ -5,6 +5,8 @@ const path = require('path');
 const root = path.resolve(__dirname, '..');
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 const serverSource = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
+const envExample = fs.readFileSync(path.join(root, '.env.example'), 'utf8');
+const serviceConfigSource = fs.readFileSync(path.join(root, 'scripts/check-service-config.js'), 'utf8');
 
 assert.equal(typeof packageJson.dependencies, 'object', 'package.json should declare runtime dependencies');
 assert(packageJson.dependencies.stripe, 'Stripe should be a runtime dependency');
@@ -44,6 +46,15 @@ assert(
   fs.existsSync(path.join(root, 'scripts/check-service-config.js')) &&
     packageJson.scripts['check:services'],
   'service configuration checker should be available for validating local credentials'
+);
+assert(
+  !/^DATABASE_URL=/m.test(envExample) &&
+    /^# DATABASE_URL=postgres:\/\//m.test(envExample),
+  'local env template should not force Postgres unless DATABASE_URL is explicitly enabled'
+);
+assert(
+  serviceConfigSource.includes("optional: 'JSON_FALLBACK'"),
+  'service config checker should allow the local JSON fallback when DATABASE_URL is unset'
 );
 
 assert(

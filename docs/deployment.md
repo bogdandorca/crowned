@@ -39,6 +39,8 @@ npm start
 
 Set `DATABASE_URL` to a reachable PostgreSQL database before using this as a production-like local run. If `DATABASE_URL` is omitted, Crowned falls back to a JSON file store for local demo use.
 
+For local Google OAuth testing without Postgres, leave `DATABASE_URL` unset.
+
 Then open `http://localhost:8765`.
 
 ## Docker
