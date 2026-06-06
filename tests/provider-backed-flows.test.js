@@ -36,6 +36,24 @@ function dispatch(handler, { url, method = 'GET', body = null }) {
   });
 }
 
+function createFailingSessionStore() {
+  return {
+    createDonationAttempt() { throw new Error('unused'); },
+    createManualDonation() { throw new Error('unused'); },
+    attachStripeSession() { throw new Error('unused'); },
+    confirmStripeSession() { throw new Error('unused'); },
+    confirmedDonations() { return []; },
+    allDonations() { return []; },
+    createShareLink() { throw new Error('unused'); },
+    shareLinkById() { return null; },
+    createSession() { throw new Error('database unavailable'); },
+    sessionById() { return null; },
+    createOAuthState() { throw new Error('database unavailable'); },
+    consumeOAuthState() { return null; },
+    linkGuestDonations() { return 0; },
+  };
+}
+
 (async () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'crowned-provider-flows-'));
   const storePath = path.join(tmp, 'store.json');
@@ -189,6 +207,69 @@ function dispatch(handler, { url, method = 'GET', body = null }) {
   assert.equal(googleCallback.status, 302);
   assert.match(googleCallback.headers['Set-Cookie'], /crowned_session=/);
   assert.equal(googleCallback.headers.Location, '/');
+
+  const failingGoogleServer = createServer({
+    root: path.resolve(__dirname, '..'),
+    store: createFailingSessionStore(),
+    env: {
+      APP_BASE_URL: 'http://localhost:8765',
+      GOOGLE_CLIENT_ID: 'google-client',
+      GOOGLE_CLIENT_SECRET: 'google-secret',
+    },
+    fetchImpl: async (url) => {
+      if (String(url).includes('oauth2.googleapis.com/token')) {
+        return {
+          ok: true,
+          async json() {
+            return { access_token: 'google_access_token' };
+          },
+        };
+      }
+      if (String(url).includes('openidconnect.googleapis.com')) {
+        return {
+          ok: true,
+          async json() {
+            return { sub: '12345', email: 'ada@example.com', name: 'Ada Lovelace' };
+          },
+        };
+      }
+      throw new Error(`Unexpected fetch URL: ${url}`);
+    },
+  });
+
+  const failedGuestStart = await dispatch(failingGoogleServer, {
+    method: 'GET',
+    url: '/api/auth/google/start?guestDonorId=guest_test',
+  });
+  assert.equal(failedGuestStart.status, 503);
+  assert.match(JSON.parse(failedGuestStart.body).error, /database/i);
+
+  const failedSessionCallback = await dispatch(failingGoogleServer, {
+    method: 'GET',
+    url: '/api/auth/google/callback?code=abc123',
+  });
+  assert.equal(failedSessionCallback.status, 503);
+  assert.match(JSON.parse(failedSessionCallback.body).error, /database/i);
+
+  const throwingGoogleServer = createServer({
+    root: path.resolve(__dirname, '..'),
+    storePath: path.join(tmp, 'throwing-google-store.json'),
+    env: {
+      APP_BASE_URL: 'http://localhost:8765',
+      GOOGLE_CLIENT_ID: 'google-client',
+      GOOGLE_CLIENT_SECRET: 'google-secret',
+    },
+    fetchImpl: async () => {
+      throw new Error('Google network failure');
+    },
+  });
+
+  const failedProviderCallback = await dispatch(throwingGoogleServer, {
+    method: 'GET',
+    url: '/api/auth/google/callback?code=abc123',
+  });
+  assert.equal(failedProviderCallback.status, 502);
+  assert.match(JSON.parse(failedProviderCallback.body).error, /Google sign-in failed/);
 
   console.log('provider-backed flows regression passed');
 })().catch((error) => {

@@ -75,21 +75,31 @@ function serveGoogleStart(_req, res, { google }) {
 
 async function serveGoogleCallback(req, res, { google, store }) {
   const requestUrl = new URL(req.url || '/', 'http://localhost');
-  const completed = await google.completeCallback({ code: requestUrl.searchParams.get('code') });
+  let completed;
+  try {
+    completed = await google.completeCallback({ code: requestUrl.searchParams.get('code') });
+  } catch (error) {
+    return sendJson(res, 502, { error: 'Google sign-in failed. Check OAuth configuration and retry.' });
+  }
   if (!completed.ok) return sendJson(res, completed.status || 502, { error: completed.error });
   const donor = {
     donorId: completed.donor.donorId || completed.donor.id,
     displayName: completed.donor.displayName,
     email: completed.donor.email,
   };
-  const session = await store.createSession(donor);
-  const state = await store.consumeOAuthState(requestUrl.searchParams.get('state') || '');
-  if (state?.guestDonorId) {
-    await store.linkGuestDonations({
-      guestDonorId: state.guestDonorId,
-      donorId: donor.donorId,
-      displayName: donor.displayName,
-    });
+  let session;
+  try {
+    session = await store.createSession(donor);
+    const state = await store.consumeOAuthState(requestUrl.searchParams.get('state') || '');
+    if (state?.guestDonorId) {
+      await store.linkGuestDonations({
+        guestDonorId: state.guestDonorId,
+        donorId: donor.donorId,
+        displayName: donor.displayName,
+      });
+    }
+  } catch (error) {
+    return sendJson(res, 503, { error: 'Google sign-in could not be saved because the database is unavailable' });
   }
   return send(res, 302, '', {
     Location: '/',
@@ -295,8 +305,8 @@ function serveStatic(req, res, { root = DEFAULT_ROOT } = {}) {
   });
 }
 
-function createServer({ root = DEFAULT_ROOT, storePath, env = process.env, fetchImpl, stripeClient, googleOAuthClient, postgresPool, port = DEFAULT_PORT } = {}) {
-  const store = createStore({ env, storePath, postgresPool });
+function createServer({ root = DEFAULT_ROOT, store: injectedStore, storePath, env = process.env, fetchImpl, stripeClient, googleOAuthClient, postgresPool, port = DEFAULT_PORT } = {}) {
+  const store = injectedStore || createStore({ env, storePath, postgresPool });
   const stripe = createStripeProvider({ env, fetchImpl, stripeClient });
   const google = createGoogleAuthProvider({ env, fetchImpl, googleOAuthClient });
   const logger = createLogger({ env });
@@ -340,9 +350,15 @@ function createServer({ root = DEFAULT_ROOT, storePath, env = process.env, fetch
       }
       if (req.method === 'GET' && urlPath === '/api/auth/google/start') {
         const requestUrl = new URL(req.url || '/', 'http://localhost');
-      const guestDonorId = requestUrl.searchParams.get('guestDonorId') || '';
-      const state = guestDonorId ? `guest_${Date.now()}_${Math.random().toString(36).slice(2)}` : '';
-      if (state) await store.createOAuthState({ state, guestDonorId });
+        const guestDonorId = requestUrl.searchParams.get('guestDonorId') || '';
+        const state = guestDonorId ? `guest_${Date.now()}_${Math.random().toString(36).slice(2)}` : '';
+        if (state) {
+          try {
+            await store.createOAuthState({ state, guestDonorId });
+          } catch (error) {
+            return sendJson(res, 503, { error: 'Google sign-in could not be started because the database is unavailable' });
+          }
+        }
         if (state) {
           const start = google.startUrl({ state });
           if (!start.ok) return sendJson(res, start.status || 503, { error: start.error });
