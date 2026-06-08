@@ -111,7 +111,7 @@ function PodiumCard({ donor, animate, onShare, idx, activeDonorId }) {
           fontSize: isOne ? 22 : 17, fontVariantNumeric: 'tabular-nums',
           color: '#7c5f30',
         }}>
-          <AnimatedNumber value={donor.amount} animate={animate} />
+          {donor.amountHidden ? 'Private gift' : <AnimatedNumber value={donor.amount} animate={animate} />}
         </div>
         <button className="share-mini" onClick={(e) => { e.stopPropagation(); onShare(donor); }} aria-label="Share rank">
           <ShareGlyph size={12} /> Share
@@ -169,7 +169,7 @@ function Podium({ top3, animate, onShare, accent, activeDonorId }) {
               marginTop: 14, fontSize: 28, fontWeight: 800,
               color: '#7c5f30', fontVariantNumeric: 'tabular-nums',
             }}>
-              <AnimatedNumber value={leader.amount} animate={animate} />
+              {leader.amountHidden ? 'Private gift' : <AnimatedNumber value={leader.amount} animate={animate} />}
             </div>
           </div>
           <div className="sans" style={{

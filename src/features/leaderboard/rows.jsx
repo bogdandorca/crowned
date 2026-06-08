@@ -57,7 +57,7 @@ function LeaderRow({ donor, animate, onShare, activeDonorId }) {
           fontSize: 17, fontWeight: 800, color: '#7c5f30',
           letterSpacing: -0.3, fontVariantNumeric: 'tabular-nums',
         }}>
-          <AnimatedNumber value={donor.amount} animate={animate} />
+          {donor.amountHidden ? 'Private gift' : <AnimatedNumber value={donor.amount} animate={animate} />}
         </div>
       </div>
       <button className="row-share" onClick={(e) => { e.stopPropagation(); onShare(donor); }} aria-label="Share rank">

@@ -40,7 +40,7 @@ function ShareCardArt({ donor, orgName, format }) {
           {fullName(donor)}
         </div>
         <div className="sans" style={{ marginTop: 12, fontSize: format === 'story' ? 44 : 38, fontWeight: 800, letterSpacing: 0, fontVariantNumeric: 'tabular-nums', color: '#7c5f30' }}>
-          {fmtMoney(donor.amount)}
+          {donor.amountHidden ? 'Private gift' : fmtMoney(donor.amount)}
         </div>
       </div>
 

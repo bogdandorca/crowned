@@ -6,12 +6,12 @@ const path = require('path');
 
 const { createServer } = require('../server');
 
-function dispatch(handler, { url, method = 'GET', body = null }) {
+function dispatch(handler, { url, method = 'GET', body = null, headers = {} }) {
   return new Promise((resolve) => {
     const req = new EventEmitter();
     req.url = url;
     req.method = method;
-    req.headers = {};
+    req.headers = headers;
 
     const res = {
       writeHead(status, headers) {
@@ -273,6 +273,49 @@ function createFailingSessionStore() {
   assert.equal(googleCallback.status, 302);
   assert.match(googleCallback.headers['Set-Cookie'], /crowned_session=/);
   assert.equal(googleCallback.headers.Location, '/');
+
+  const expiredSessionServer = createServer({
+    root: path.resolve(__dirname, '..'),
+    storePath: path.join(tmp, 'expired-session-store.json'),
+    env: {
+      APP_BASE_URL: 'http://localhost:8765',
+      SESSION_TTL_SECONDS: '-1',
+      GOOGLE_CLIENT_ID: 'google-client',
+      GOOGLE_CLIENT_SECRET: 'google-secret',
+    },
+    fetchImpl: async (url) => {
+      if (String(url).includes('oauth2.googleapis.com/token')) {
+        return {
+          ok: true,
+          async json() {
+            return { access_token: 'google_access_token' };
+          },
+        };
+      }
+      if (String(url).includes('openidconnect.googleapis.com')) {
+        return {
+          ok: true,
+          async json() {
+            return { sub: 'expired', email: 'expired@example.com', name: 'Expired Donor' };
+          },
+        };
+      }
+      throw new Error(`Unexpected fetch URL: ${url}`);
+    },
+  });
+
+  const expiredCallback = await dispatch(expiredSessionServer, {
+    method: 'GET',
+    url: '/api/auth/google/callback?code=expired123',
+  });
+  assert.equal(expiredCallback.status, 302);
+  const expiredCookie = expiredCallback.headers['Set-Cookie'].split(';')[0];
+  const expiredSession = await dispatch(expiredSessionServer, {
+    method: 'GET',
+    url: '/api/session',
+    headers: { cookie: expiredCookie },
+  });
+  assert.equal(JSON.parse(expiredSession.body).signedIn, false);
 
   const failingGoogleServer = createServer({
     root: path.resolve(__dirname, '..'),

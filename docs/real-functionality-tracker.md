@@ -1,6 +1,6 @@
 # Crowned Real Functionality Tracker
 
-Last updated: June 6, 2026
+Last updated: June 8, 2026
 
 ## Purpose
 
@@ -29,7 +29,7 @@ Use this tracker as the single checklist for implementation status. Update the s
 | Area | Target real functionality | Current state | Status | Owner/notes |
 |---|---|---|---|---|
 | Backend API | Server endpoints for leaderboard reads, donation creation, auth session reads, and share links | Leaderboard, donations, Stripe webhook, Google auth/session, admin, health, and share-link endpoints exist | Complete | Public leaderboard rows are created only from confirmed donations |
-| Database | Persistent donors, donation transactions, organizations, leaderboard periods, and share records | PostgreSQL persists donations, share links, sessions, and OAuth states when configured; JSON remains the local fallback | Complete | Uses `DATABASE_URL` or `POSTGRES_URL`; SQLite is not supported |
+| Database | Persistent donors, donation transactions, organizations, leaderboard periods, and share records | PostgreSQL persists donations, donor profiles, period settings, share links, sessions, and OAuth states when configured; JSON remains the local fallback | Complete | Uses `DATABASE_URL` or `POSTGRES_URL`; SQLite is not supported |
 | Authentication | Real donor sign-in and session state | Google OAuth start/callback and HTTP-only session cookie are wired | Complete | Requires `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `APP_BASE_URL` |
 | Payments | Real checkout and payment confirmation | Stripe Checkout creation, checkout-return reconciliation, and signed webhook confirmation are wired | Complete | Requires `STRIPE_SECRET_KEY`; `STRIPE_WEBHOOK_SECRET` is required for signed webhook verification |
 | Leaderboard totals | Completed gifts update all-time/month totals and rankings | Confirmed server donations are folded into leaderboard totals | Complete | Uses PostgreSQL in production and JSON fallback for local demo mode |
@@ -38,7 +38,7 @@ Use this tracker as the single checklist for implementation status. Update the s
 | Share images | Export story/feed card to PNG | Browser SVG-to-canvas export downloads PNG files | Complete | Uses generated share art matching the card data |
 | Share links | Copyable public rank/donor links | Server share-link API persists share records and returns `/share/:id` URLs | Complete | Public `/share/:id` page rendering and metadata are wired |
 | Social sharing | Open platform share flows where supported | Facebook sharer opens, native share is used when available, Instagram falls back to copied link | Complete | Instagram web posting is platform-limited |
-| Admin data management | Manage donors, periods, imports, adjustments, and visibility | Token-protected manual donation and CSV export APIs exist | In progress | Donor edit/list, period configuration, visibility controls, and polished UI remain future admin work |
+| Admin data management | Manage donors, periods, imports, adjustments, and visibility | Token-protected admin APIs and `/admin` console support donor profiles, manual adjustments, period settings, visibility/privacy controls, CSV import/export, and session cleanup | Complete | Uses one organization-level `ADMIN_TOKEN`; staff accounts remain out of scope |
 | Observability | Runtime logs/errors for donation and API flows | Structured request completion and failure logs are available in production or with `CROWNED_LOGS=json` | Complete | Responses include `X-Request-Id` for correlation |
 | Deployment config | Environment-driven production config | `.env.example`, Dockerfile, deployment docs, runtime dependencies, and health checks are in place | Complete | Production provider accounts and secrets must be supplied outside the repo |
 
@@ -95,7 +95,7 @@ Goal: replace mocked Google sign-in with a real donor identity model.
 - [x] Preserve guest checkout for donors who do not sign in.
 - [x] Add account-linking behavior for guest donations after sign-in.
 - [x] Add signed-in, signed-out, and auth-error tests.
-- [ ] Add expired-session cleanup tests.
+- [x] Add expired-session cleanup tests.
 - [x] Update `FEATURES.md`.
 
 Completion criteria:
@@ -126,14 +126,14 @@ Completion criteria:
 
 Goal: let an organization maintain leaderboard data without editing source code.
 
-- [ ] Define the minimum admin role and permissions.
-- [ ] Add donor create/edit/list workflow.
-- [ ] Add manual donation adjustment workflow with audit fields.
-- [ ] Add leaderboard period configuration.
-- [ ] Add donor visibility/anonymity controls.
-- [ ] Add CSV import/export if needed.
-- [ ] Add tests for admin validation and permission boundaries.
-- [ ] Update `FEATURES.md`.
+- [x] Define the minimum admin role and permissions.
+- [x] Add donor create/edit/list workflow.
+- [x] Add manual donation adjustment workflow with audit fields.
+- [x] Add leaderboard period configuration.
+- [x] Add donor visibility/anonymity controls.
+- [x] Add CSV import/export if needed.
+- [x] Add tests for admin validation and permission boundaries.
+- [x] Update `FEATURES.md`.
 
 Completion criteria:
 
@@ -158,17 +158,9 @@ Completion criteria:
 - Health checks and smoke tests catch obvious deployment failures.
 - Sensitive keys are not committed or exposed to the browser.
 
-## Immediate Next Plan
+## Current Follow-Up
 
-The first implementation plan should be **Phase 1: Backend Foundation** because payments, auth, refresh, and share links all need persistent server data.
-
-Suggested first vertical slice:
-
-- [x] Add a small API module while preserving the static server.
-- [x] Move leaderboard reads behind `GET /api/leaderboard`.
-- [x] Add a frontend fetch service with a mocked-data fallback for local resilience.
-- [x] Keep all current UI components unchanged except their data source.
-- [x] Run focused Node regression tests and add API-level tests.
+The tracked real-functionality phases are implemented and covered by regression tests. Future work should be added as new product requirements rather than extending the original prototype-completion checklist.
 
 ## Open Decisions
 
@@ -178,7 +170,7 @@ These choices block precise implementation details:
 - [x] Auth provider: Google OAuth directly, Auth.js, Clerk, Supabase Auth, or another provider.
 - [x] Payment provider: Stripe, PayPal, donor-platform integration, or a custom processor.
 - [x] Deployment target: single Node service, static host plus API service, or managed full-stack host.
-- [ ] Public donor privacy rules: full names, initials, anonymous donors, opt-out, or amount hiding.
+- [x] Public donor privacy rules: admins can set public names, anonymous display, hidden donors, and hidden public amounts.
 
 ## Tracking Rules
 

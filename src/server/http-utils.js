@@ -53,11 +53,12 @@ function cookieValue(req, name) {
   return parsed[name] || '';
 }
 
-function sessionCookie(sessionId) {
+function sessionCookie(sessionId, { maxAge } = {}) {
   return cookie.serialize('crowned_session', sessionId, {
     path: '/',
     httpOnly: true,
     sameSite: 'lax',
+    maxAge,
   });
 }
 

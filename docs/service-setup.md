@@ -28,6 +28,9 @@ STRIPE_WEBHOOK_SECRET=whsec_from_stripe_dashboard_or_cli
 GOOGLE_CLIENT_ID=google-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=google-client-secret
 GOOGLE_REDIRECT_URI=https://your-domain.example/api/auth/google/callback
+
+# Optional. Defaults to 30 days.
+SESSION_TTL_SECONDS=2592000
 ```
 
 For local OAuth testing, use:
@@ -46,6 +49,8 @@ GOOGLE_REDIRECT_URI=http://localhost:8765/api/auth/google/callback
 5. If your provider requires TLS, use the connection string format they provide. Many hosted providers include an SSL parameter in the copied URI.
 6. Start Crowned once. If the target database does not exist and the role can create databases, Crowned connects to the maintenance `postgres` database, creates the target database, reconnects, and creates the required tables:
    - `donations`
+   - `donor_profiles`
+   - `period_settings`
    - `share_links`
    - `sessions`
    - `oauth_states`
@@ -160,10 +165,42 @@ Set it as `ADMIN_TOKEN`. Admin requests must include:
 x-admin-token: <ADMIN_TOKEN>
 ```
 
+Open the admin console at:
+
+```text
+${APP_BASE_URL}/admin
+```
+
+The console asks for the admin token and can manage donor profiles, privacy, manual adjustments, leaderboard periods, CSV import/export, and expired-session cleanup.
+
 Current admin APIs:
 
+- `GET /api/admin/donors`
+- `POST /api/admin/donors`
+- `GET /api/admin/periods`
+- `POST /api/admin/periods`
 - `POST /api/admin/donations`
+- `POST /api/admin/import.csv`
 - `GET /api/admin/export.csv`
+- `POST /api/admin/sessions/cleanup`
+
+CSV imports require these headers:
+
+```text
+donorId,displayName,amount,note
+```
+
+Donor privacy settings are applied before public leaderboard and share output is rendered:
+
+- anonymous donors display as `Anonymous donor`;
+- hidden donors are excluded from public leaderboard rows;
+- hidden amounts display as `Private gift`.
+
+## Sessions
+
+Google sign-in creates an HTTP-only `crowned_session` cookie and a matching server session. The optional `SESSION_TTL_SECONDS` environment variable controls the lifetime and defaults to 30 days. Expired sessions are ignored by `GET /api/session`.
+
+Use `POST /api/admin/sessions/cleanup` with `x-admin-token` to remove expired sessions and stale OAuth states.
 
 ## Verification Checklist
 

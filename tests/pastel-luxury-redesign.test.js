@@ -85,6 +85,17 @@ assert(
   'donor badge subtitles should not render in podium, standing rows, or share cards'
 );
 assert(
+  podium.includes('donor.amountHidden') &&
+    rows.includes('donor.amountHidden') &&
+    podium.includes('Private gift') &&
+    rows.includes('Private gift'),
+  'leaderboard rows and podium cards should render a private gift label for amount-hidden donors'
+);
+assert(
+  share.includes('donor.amountHidden') && share.includes('Private gift'),
+  'share cards should render a private gift label for amount-hidden donors'
+);
+assert(
   donate.includes('Make a Gift') && !donate.includes('Take the Crown'),
   'primary donate CTA should use restrained giving language'
 );

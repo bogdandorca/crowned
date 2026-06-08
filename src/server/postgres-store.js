@@ -41,6 +41,30 @@ function normalizeSession(row) {
     displayName: row.display_name,
     email: row.email,
     createdAt: row.created_at,
+    expiresAt: row.expires_at,
+  };
+}
+
+function normalizeDonorProfile(row) {
+  if (!row) return null;
+  return {
+    donorId: row.donor_id,
+    displayName: row.display_name,
+    publicName: row.public_name || '',
+    anonymous: !!row.anonymous,
+    hidden: !!row.hidden,
+    showAmount: row.show_amount !== false,
+    updatedAt: row.updated_at,
+  };
+}
+
+function normalizePeriodSetting(row) {
+  if (!row) return null;
+  return {
+    period: row.period,
+    label: row.label,
+    active: !!row.active,
+    updatedAt: row.updated_at,
   };
 }
 
@@ -99,13 +123,32 @@ function createPostgresStore({ connectionString, pool, poolFactory = config => n
       donor_id TEXT NOT NULL,
       display_name TEXT NOT NULL,
       email TEXT,
-      created_at TIMESTAMPTZ NOT NULL
+      created_at TIMESTAMPTZ NOT NULL,
+      expires_at TIMESTAMPTZ
     );
+    ALTER TABLE sessions ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ;
 
     CREATE TABLE IF NOT EXISTS oauth_states (
       state TEXT PRIMARY KEY,
       guest_donor_id TEXT,
       created_at TIMESTAMPTZ NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS donor_profiles (
+      donor_id TEXT PRIMARY KEY,
+      display_name TEXT NOT NULL,
+      public_name TEXT,
+      anonymous BOOLEAN NOT NULL DEFAULT false,
+      hidden BOOLEAN NOT NULL DEFAULT false,
+      show_amount BOOLEAN NOT NULL DEFAULT true,
+      updated_at TIMESTAMPTZ NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS period_settings (
+      period TEXT PRIMARY KEY,
+      label TEXT NOT NULL,
+      active BOOLEAN NOT NULL DEFAULT true,
+      updated_at TIMESTAMPTZ NOT NULL
     );
   `;
 
@@ -136,12 +179,23 @@ function createPostgresStore({ connectionString, pool, poolFactory = config => n
 
   async function ensureSchema() {
     if (!schemaReady) {
-      schemaReady = initializeSchema().catch((error) => {
+      schemaReady = initializeSchema().then(seedPeriodSettings).catch((error) => {
         schemaReady = null;
         throw error;
       });
     }
     return schemaReady;
+  }
+
+  async function seedPeriodSettings() {
+    const now = new Date().toISOString();
+    await db.query(`
+      INSERT INTO period_settings (period, label, active, updated_at)
+      VALUES
+        ('all', 'All Time', true, $1),
+        ('month', 'This Month', true, $1)
+      ON CONFLICT (period) DO NOTHING
+    `, [now]);
   }
 
   async function createDonation({ donorId, displayName, amount, method, status = 'pending', provider = 'stripe', note = '', providerSessionId = null }) {
@@ -215,6 +269,70 @@ function createPostgresStore({ connectionString, pool, poolFactory = config => n
     return result.rows.map(normalizeDonation);
   }
 
+  async function donorProfiles() {
+    await ensureSchema();
+    const result = await db.query('SELECT * FROM donor_profiles ORDER BY display_name ASC, donor_id ASC');
+    return result.rows.map(normalizeDonorProfile);
+  }
+
+  async function donorProfileById(donorId) {
+    await ensureSchema();
+    const result = await db.query('SELECT * FROM donor_profiles WHERE donor_id = $1', [String(donorId || '').trim()]);
+    return normalizeDonorProfile(result.rows[0]);
+  }
+
+  async function upsertDonorProfile(input) {
+    await ensureSchema();
+    const donorId = String(input.donorId || '').trim();
+    const displayName = String(input.displayName || input.publicName || donorId).trim();
+    const result = await db.query(`
+      INSERT INTO donor_profiles (donor_id, display_name, public_name, anonymous, hidden, show_amount, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      ON CONFLICT (donor_id)
+      DO UPDATE SET
+        display_name = EXCLUDED.display_name,
+        public_name = EXCLUDED.public_name,
+        anonymous = EXCLUDED.anonymous,
+        hidden = EXCLUDED.hidden,
+        show_amount = EXCLUDED.show_amount,
+        updated_at = EXCLUDED.updated_at
+      RETURNING *
+    `, [
+      donorId,
+      displayName,
+      String(input.publicName || '').trim(),
+      !!input.anonymous,
+      !!input.hidden,
+      input.showAmount === false ? false : true,
+      new Date().toISOString(),
+    ]);
+    return normalizeDonorProfile(result.rows[0]);
+  }
+
+  async function periodSettings() {
+    await ensureSchema();
+    const result = await db.query(`
+      SELECT * FROM period_settings
+      WHERE period IN ('all', 'month')
+      ORDER BY CASE WHEN period = 'all' THEN 0 ELSE 1 END
+    `);
+    return result.rows.map(normalizePeriodSetting);
+  }
+
+  async function upsertPeriodSetting(input) {
+    await ensureSchema();
+    const period = input.period === 'month' ? 'month' : 'all';
+    const label = String(input.label || (period === 'month' ? 'This Month' : 'All Time')).trim();
+    const result = await db.query(`
+      INSERT INTO period_settings (period, label, active, updated_at)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (period)
+      DO UPDATE SET label = EXCLUDED.label, active = EXCLUDED.active, updated_at = EXCLUDED.updated_at
+      RETURNING *
+    `, [period, label, input.active === false ? false : true, new Date().toISOString()]);
+    return normalizePeriodSetting(result.rows[0]);
+  }
+
   async function createShareLink({ donorId, format = 'story', period = 'all' }) {
     await ensureSchema();
     const result = await db.query(`
@@ -237,11 +355,11 @@ function createPostgresStore({ connectionString, pool, poolFactory = config => n
     return normalizeShare(result.rows[0]);
   }
 
-  async function createSession({ donorId, displayName, email }) {
+  async function createSession({ donorId, displayName, email, expiresAt }) {
     await ensureSchema();
     const result = await db.query(`
-      INSERT INTO sessions (id, donor_id, display_name, email, created_at)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO sessions (id, donor_id, display_name, email, created_at, expires_at)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `, [
       randomId('session'),
@@ -249,14 +367,27 @@ function createPostgresStore({ connectionString, pool, poolFactory = config => n
       displayName,
       email,
       new Date().toISOString(),
+      expiresAt || null,
     ]);
     return normalizeSession(result.rows[0]);
   }
 
   async function sessionById(id) {
     await ensureSchema();
-    const result = await db.query('SELECT * FROM sessions WHERE id = $1', [id]);
+    const result = await db.query('SELECT * FROM sessions WHERE id = $1 AND (expires_at IS NULL OR expires_at > NOW())', [id]);
     return normalizeSession(result.rows[0]);
+  }
+
+  async function cleanupExpiredSessions({ now = new Date(), oauthMaxAgeMs = 60 * 60 * 1000 } = {}) {
+    await ensureSchema();
+    const nowValue = now instanceof Date ? now.toISOString() : now;
+    const sessionResult = await db.query('DELETE FROM sessions WHERE expires_at IS NOT NULL AND expires_at <= $1', [nowValue]);
+    const oauthCutoff = new Date((now instanceof Date ? now.getTime() : Date.parse(now)) - oauthMaxAgeMs).toISOString();
+    const oauthResult = await db.query('DELETE FROM oauth_states WHERE created_at <= $1', [oauthCutoff]);
+    return {
+      sessions: sessionResult.rowCount || 0,
+      oauthStates: oauthResult.rowCount || 0,
+    };
   }
 
   async function createOAuthState({ state, guestDonorId }) {
@@ -295,10 +426,16 @@ function createPostgresStore({ connectionString, pool, poolFactory = config => n
     donationById,
     confirmedDonations,
     allDonations,
+    donorProfiles,
+    donorProfileById,
+    upsertDonorProfile,
+    periodSettings,
+    upsertPeriodSetting,
     createShareLink,
     shareLinkById,
     createSession,
     sessionById,
+    cleanupExpiredSessions,
     createOAuthState,
     consumeOAuthState,
     linkGuestDonations,

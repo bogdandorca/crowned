@@ -7,6 +7,8 @@ const DEFAULT_STORE = {
   shareLinks: [],
   sessions: [],
   oauthStates: [],
+  donorProfiles: [],
+  periodSettings: [],
 };
 
 function randomId(prefix) {
@@ -14,11 +16,20 @@ function randomId(prefix) {
 }
 
 function createJsonStore({ filePath = path.join(process.cwd(), 'data/crowned-store.json') } = {}) {
+  function defaultPeriodSettings() {
+    const now = new Date().toISOString();
+    return [
+      { period: 'all', label: 'All Time', active: true, updatedAt: now },
+      { period: 'month', label: 'This Month', active: true, updatedAt: now },
+    ];
+  }
+
   function read() {
     try {
-      return { ...DEFAULT_STORE, ...JSON.parse(fs.readFileSync(filePath, 'utf8')) };
+      const state = { ...DEFAULT_STORE, ...JSON.parse(fs.readFileSync(filePath, 'utf8')) };
+      return { ...state, periodSettings: state.periodSettings.length ? state.periodSettings : defaultPeriodSettings() };
     } catch (error) {
-      return { ...DEFAULT_STORE };
+      return { ...DEFAULT_STORE, periodSettings: defaultPeriodSettings() };
     }
   }
 
@@ -99,6 +110,62 @@ function createJsonStore({ filePath = path.join(process.cwd(), 'data/crowned-sto
     return read().donations;
   }
 
+  function normalizeDonorProfile(input) {
+    const now = new Date().toISOString();
+    const donorId = String(input.donorId || '').trim();
+    const displayName = String(input.displayName || input.publicName || donorId).trim();
+    return {
+      donorId,
+      displayName,
+      publicName: String(input.publicName || '').trim(),
+      anonymous: !!input.anonymous,
+      hidden: !!input.hidden,
+      showAmount: input.showAmount === false ? false : true,
+      updatedAt: input.updatedAt || now,
+    };
+  }
+
+  function donorProfiles() {
+    return read().donorProfiles.map(normalizeDonorProfile);
+  }
+
+  function donorProfileById(donorId) {
+    const id = String(donorId || '').trim();
+    return donorProfiles().find(profile => profile.donorId === id) || null;
+  }
+
+  function upsertDonorProfile(input) {
+    const profile = normalizeDonorProfile({ ...input, updatedAt: new Date().toISOString() });
+    const state = read();
+    state.donorProfiles = state.donorProfiles.filter(item => item.donorId !== profile.donorId);
+    state.donorProfiles.push(profile);
+    write(state);
+    return profile;
+  }
+
+  function normalizePeriodSetting(input) {
+    const period = input.period === 'month' ? 'month' : 'all';
+    return {
+      period,
+      label: String(input.label || (period === 'month' ? 'This Month' : 'All Time')).trim(),
+      active: input.active === false ? false : true,
+      updatedAt: input.updatedAt || new Date().toISOString(),
+    };
+  }
+
+  function periodSettings() {
+    return read().periodSettings.map(normalizePeriodSetting).sort((a, b) => (a.period === 'all' ? -1 : 1));
+  }
+
+  function upsertPeriodSetting(input) {
+    const period = normalizePeriodSetting({ ...input, updatedAt: new Date().toISOString() });
+    const state = read();
+    state.periodSettings = state.periodSettings.filter(item => item.period !== period.period);
+    state.periodSettings.push(period);
+    write(state);
+    return period;
+  }
+
   function createShareLink({ donorId, format = 'story', period = 'all' }) {
     const state = read();
     const share = {
@@ -117,7 +184,11 @@ function createJsonStore({ filePath = path.join(process.cwd(), 'data/crowned-sto
     return read().shareLinks.find(share => share.id === id) || null;
   }
 
-  function createSession({ donorId, displayName, email }) {
+  function isExpired(value, now = Date.now()) {
+    return value && Date.parse(value) <= now;
+  }
+
+  function createSession({ donorId, displayName, email, expiresAt }) {
     const state = read();
     const session = {
       id: randomId('session'),
@@ -125,6 +196,7 @@ function createJsonStore({ filePath = path.join(process.cwd(), 'data/crowned-sto
       displayName,
       email,
       createdAt: new Date().toISOString(),
+      expiresAt: expiresAt || null,
     };
     state.sessions.push(session);
     write(state);
@@ -132,7 +204,9 @@ function createJsonStore({ filePath = path.join(process.cwd(), 'data/crowned-sto
   }
 
   function sessionById(id) {
-    return read().sessions.find(session => session.id === id) || null;
+    const session = read().sessions.find(item => item.id === id) || null;
+    if (!session || isExpired(session.expiresAt)) return null;
+    return session;
   }
 
   function createOAuthState({ state, guestDonorId }) {
@@ -164,6 +238,23 @@ function createJsonStore({ filePath = path.join(process.cwd(), 'data/crowned-sto
     return changes;
   }
 
+  function cleanupExpiredSessions({ now = new Date(), oauthMaxAgeMs = 60 * 60 * 1000 } = {}) {
+    const state = read();
+    const nowMs = now instanceof Date ? now.getTime() : Date.parse(now);
+    const beforeSessions = state.sessions.length;
+    const beforeStates = state.oauthStates.length;
+    state.sessions = state.sessions.filter(session => !isExpired(session.expiresAt, nowMs));
+    state.oauthStates = state.oauthStates.filter((item) => {
+      const created = Date.parse(item.createdAt || '');
+      return Number.isFinite(created) && nowMs - created <= oauthMaxAgeMs;
+    });
+    write(state);
+    return {
+      sessions: beforeSessions - state.sessions.length,
+      oauthStates: beforeStates - state.oauthStates.length,
+    };
+  }
+
   return {
     read,
     write,
@@ -174,10 +265,16 @@ function createJsonStore({ filePath = path.join(process.cwd(), 'data/crowned-sto
     donationById,
     confirmedDonations,
     allDonations,
+    donorProfiles,
+    donorProfileById,
+    upsertDonorProfile,
+    periodSettings,
+    upsertPeriodSetting,
     createShareLink,
     shareLinkById,
     createSession,
     sessionById,
+    cleanupExpiredSessions,
     createOAuthState,
     consumeOAuthState,
     linkGuestDonations,

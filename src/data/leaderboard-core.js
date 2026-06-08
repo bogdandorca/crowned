@@ -18,13 +18,30 @@
     return '$' + Math.round(n).toLocaleString('en-US');
   }
 
-  function donorsWithDonations(donations = []) {
+  function profileMapFor(donorProfiles = []) {
+    return new Map((donorProfiles || [])
+      .filter(profile => profile && String(profile.donorId || '').trim())
+      .map(profile => [String(profile.donorId).trim(), profile]));
+  }
+
+  function nameParts(displayName, fallback = 'Guest donor') {
+    const parts = String(displayName || fallback).trim().split(/\s+/).filter(Boolean);
+    return {
+      first: parts[0] || 'Guest',
+      last: parts.slice(1).join(' '),
+    };
+  }
+
+  function donorsWithDonations(donations = [], donorProfiles = []) {
     const donorMap = new Map(DONORS.map(donor => [donor.id, { ...donor }]));
+    const profiles = profileMapFor(donorProfiles);
     donations
       .filter(donation => donation && donation.status === 'confirmed')
       .forEach((donation) => {
         const donorId = String(donation.donorId || '').trim();
         if (!donorId) return;
+        const profile = profiles.get(donorId);
+        if (profile?.hidden) return;
         const amount = Math.max(0, Number(donation.amount) || 0);
         const existing = donorMap.get(donorId);
         if (existing) {
@@ -32,23 +49,36 @@
           existing.thisMonth += amount;
           return;
         }
-        const displayName = String(donation.displayName || 'Guest donor').trim();
-        const parts = displayName.split(/\s+/);
+        const profileName = profile?.anonymous ? 'Anonymous donor' : (profile?.publicName || profile?.displayName || donation.displayName);
+        const parts = nameParts(profileName);
         donorMap.set(donorId, {
           id: donorId,
-          first: parts[0] || 'Guest',
-          last: parts.slice(1).join(' '),
+          first: parts.first,
+          last: parts.last,
           badge: 'Guest donor',
           hue: 146,
           allTime: amount,
           thisMonth: amount,
+          amountHidden: profile?.showAmount === false,
         });
       });
-    return Array.from(donorMap.values());
+    return Array.from(donorMap.values()).map((donor) => {
+      const profile = profiles.get(donor.id);
+      if (!profile) return donor;
+      if (profile.hidden) return null;
+      const displayName = profile.anonymous ? 'Anonymous donor' : (profile.publicName || profile.displayName || fullName(donor));
+      const parts = nameParts(displayName, fullName(donor));
+      return {
+        ...donor,
+        first: parts.first,
+        last: parts.last,
+        amountHidden: profile.showAmount === false,
+      };
+    }).filter(Boolean);
   }
 
   function rankedFor(tab, options = {}) {
-    const donors = donorsWithDonations(options.donations || []);
+    const donors = donorsWithDonations(options.donations || [], options.donorProfiles || []);
     const key = tab === 'month' ? 'thisMonth' : 'allTime';
     const otherKey = tab === 'month' ? 'allTime' : 'thisMonth';
 
@@ -62,7 +92,7 @@
       const d = donors.find(x => x.id === id);
       const rank = i + 1;
       const delta = otherRankOf[id] - rank;
-      return { ...d, rank, amount: d[key], delta };
+      return { ...d, rank, amount: d.amountHidden ? 0 : d[key], delta };
     });
   }
 
@@ -92,8 +122,8 @@
     };
   }
 
-  function leaderboardDisplayFor({ donorId, tab = 'all', topLimit = 10, windowSize = 5, donations = [] }) {
-    const ranked = rankedFor(tab, { donations });
+  function leaderboardDisplayFor({ donorId, tab = 'all', topLimit = 10, windowSize = 5, donations = [], donorProfiles = [] }) {
+    const ranked = rankedFor(tab, { donations, donorProfiles });
     const topRows = ranked.filter(d => d.rank > 3 && d.rank <= topLimit);
     const activeIndex = ranked.findIndex(d => d.id === donorId);
     const shouldShowNearby = activeIndex >= topLimit;

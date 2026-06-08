@@ -12,6 +12,7 @@ Copy `.env.example` and set production values:
 - `GOOGLE_CLIENT_ID`: Google OAuth client id.
 - `GOOGLE_CLIENT_SECRET`: Google OAuth client secret.
 - `GOOGLE_REDIRECT_URI`: `${APP_BASE_URL}/api/auth/google/callback`.
+- `SESSION_TTL_SECONDS`: optional signed-in session lifetime in seconds; defaults to 30 days.
 
 See `docs/service-setup.md` for step-by-step PostgreSQL, Stripe, and Google setup.
 
@@ -63,8 +64,17 @@ Both return `{"ok":true}` when the Node process is serving requests.
 
 Send `x-admin-token: $ADMIN_TOKEN`.
 
+- `GET /admin`: static admin console for token-authenticated operations.
+- `GET /api/admin/donors`: list donor profiles and totals.
+- `POST /api/admin/donors`: create or update donor display/privacy settings.
+- `GET /api/admin/periods`: list all-time/month period settings.
+- `POST /api/admin/periods`: update period labels and active flags.
 - `POST /api/admin/donations`: create a confirmed manual adjustment.
+- `POST /api/admin/import.csv`: import confirmed manual donations from CSV.
 - `GET /api/admin/export.csv`: export donation records.
+- `POST /api/admin/sessions/cleanup`: remove expired sessions and stale OAuth states.
+
+CSV imports use `donorId,displayName,amount,note` headers. Donor privacy options are public name override, anonymous display, hidden donor, and hidden public amount.
 
 ## Production Notes
 
@@ -72,4 +82,4 @@ Send `x-admin-token: $ADMIN_TOKEN`.
 - Use managed PostgreSQL or a durable self-hosted PostgreSQL instance for `DATABASE_URL`.
 - Do not use the JSON fallback for production traffic.
 - Rotate `ADMIN_TOKEN`, Stripe keys, and Google secrets through your hosting provider.
-- Review donor privacy policy before publishing full names and donation amounts.
+- Configure donor privacy settings before publishing full names and donation amounts.
